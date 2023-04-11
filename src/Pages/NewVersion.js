@@ -1,0 +1,325 @@
+import React, { useEffect, useState } from 'react';
+import Card from '../components/Card';
+import { Field, Input, TextArea } from '@dhis2/ui';
+import { Button } from 'antd';
+import {
+  createVersion,
+  getMasterIndicators,
+  getVersionDetails,
+  updateVersion,
+} from '../api/api';
+import { CheckCircleIcon, XCircleIcon } from '@heroicons/react/24/outline';
+import classes from '../App.module.css';
+import { useFormik } from 'formik';
+import * as Yup from 'yup';
+import Title from '../components/Title';
+import IndicatorStack from '../components/IndicatorStack';
+import Accordion from '../components/Accordion';
+import Loading from '../components/Loader';
+import { createUseStyles } from 'react-jss';
+import { useParams, useNavigate } from 'react-router-dom';
+import { mergeCategories, sortIndicatorsByCode } from '../utils/helpers';
+import Modal from '../components/Modal';
+
+const useStyles = createUseStyles({
+  alertBar: {
+    position: 'fixed !important',
+    top: '3.5rem',
+    left: '50%',
+    transform: 'translateX(-50%)',
+  },
+  modal: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontSize: '1rem',
+  },
+});
+
+const validationSchema = Yup.object({
+  versionDescription: Yup.string().required('Description is required'),
+});
+
+export default function NewVersion({ user }) {
+  const [loadingIndicators, setLoadingIndicators] = useState(true);
+  const [indicators, setIndicators] = useState([]);
+  const [success, setSuccess] = useState(false);
+  const [error, setError] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+
+  const { id } = useParams();
+  const navigate = useNavigate();
+
+  const isView = window.location.href.includes('view');
+
+  const styles = useStyles();
+  const formik = useFormik({
+    initialValues: {
+      versionDescription: '',
+      isPublished: false,
+    },
+    validationSchema,
+    onSubmit: async values => {
+      try {
+        const indicatorValues = Object.keys(values).filter(
+          value =>
+            value &&
+            value !== 'versionName' &&
+            value !== 'versionDescription' &&
+            value !== 'isPublished'
+        );
+
+        const getSelectedIndicators = indicatorValues.filter(
+          item => values[item]
+        );
+
+        let response;
+        if (id) {
+          const data = {
+            versionDescription: values.versionDescription,
+            isPublished: values.isPublished,
+            publishedBy: values.isPublished ? user?.me?.username : null,
+            indicators: getSelectedIndicators,
+          };
+
+          response = await updateVersion(id, data);
+        } else {
+          const data = {
+            createdBy: user?.me?.username,
+            versionName: values.versionName,
+            versionDescription: values.versionDescription,
+            isPublished: values.isPublished,
+            publishedBy: values.isPublished ? user?.me?.username : null,
+            indicators: getSelectedIndicators,
+          };
+
+          response = await createVersion(data);
+        }
+        if (response) {
+          setSuccess('Template saved successfully');
+          setError(false);
+          window.scrollTo(0, 0);
+          setTimeout(() => {
+            navigate('/');
+          }, 1000);
+        }
+      } catch (error) {
+        setError('Oops! Something went wrong');
+        setSuccess(false);
+      }
+    },
+  });
+
+  const getIndicatorDetails = async () => {
+    try {
+      setLoadingIndicators(true);
+      const response = await getVersionDetails(id);
+      const data = response[0];
+
+      if (data) {
+        formik.setFieldValue('versionName', data?.versionName);
+        formik.setFieldValue('versionDescription', data?.versionDescription);
+        formik.setFieldValue('isPublished', data?.status === 'PUBLISHED');
+
+        const indicatorValues = data?.indicators?.map(indicator =>
+          indicator?.indicators?.map(indicator => indicator.categoryId)
+        );
+
+        const flattenedIndicators = indicatorValues?.flat();
+        flattenedIndicators.forEach(indicator => {
+          formik.setFieldValue(indicator, indicator);
+        });
+        setLoadingIndicators(false);
+      }
+    } catch (error) {
+      setError('Oops! Something went wrong');
+      setLoadingIndicators(false);
+    }
+  };
+
+  const getIndicators = async () => {
+    try {
+      setLoadingIndicators(true);
+      const res = await getMasterIndicators();
+
+      const data = mergeCategories(res);
+
+      setIndicators(data);
+      setLoadingIndicators(false);
+    } catch (error) {
+      setError('Error loading indicators');
+      setLoadingIndicators(false);
+    }
+  };
+
+  console.log(formik.values);
+
+  useEffect(() => {
+    getIndicators();
+    if (id) {
+      getIndicatorDetails();
+    }
+    if (!id) formik.resetForm();
+  }, [id]);
+
+  useEffect(() => {
+    if (success) {
+      formik.resetForm();
+      const successTimeout = setTimeout(() => {
+        setSuccess(false);
+      }, 3000);
+
+      return () => clearTimeout(successTimeout);
+    }
+  }, [success]);
+
+  const footer = (
+    <div className={classes.cardFooter}>
+      <Button
+        name='Small button'
+        onClick={formik.handleReset}
+        small
+        value='default'
+        className={classes.btnCancel}
+      >
+        Cancel
+      </Button>
+      <Button
+        name='Small Primary button'
+        onClick={() => {
+          formik.setFieldValue('isPublished', true);
+          formik.handleSubmit();
+        }}
+        small
+        value='default'
+        className={classes.btnPublish}
+        loading={formik.isSubmitting && formik.values.isPublished}
+      >
+        Publish template
+      </Button>
+      <Button
+        name='Small button'
+        onClick={formik.handleSubmit}
+        small
+        value='default'
+        className={classes.btnSuccess}
+        loading={formik.isSubmitting && !formik.values.isPublished}
+      >
+        Save
+      </Button>
+    </div>
+  );
+
+  return (
+    <Card title='CREATE A VERSION' footer={isView ? null : footer}>
+      {success && (
+        <Modal
+          open={success}
+          type='success'
+          onCancel={() => setSuccess(false)}
+          title='Success'
+          footer={null}
+        >
+          <div className={styles.modal}>
+            <CheckCircleIcon className={classes.iconSuccess} />
+            {success}
+          </div>
+        </Modal>
+      )}
+
+      {error && (
+        <Modal
+          open={error}
+          type='error'
+          onCancel={() => setError(false)}
+          title='Error'
+          footer={null}
+        >
+          <div className={styles.modal}>
+            <XCircleIcon className={classes.iconError} />
+            {error}
+          </div>
+        </Modal>
+      )}
+
+      <form className={classes.formGrid}>
+        <Field
+          label='Version Number'
+          validationText={
+            formik.errors.versionName && formik.touched.versionName
+              ? formik.errors.versionName
+              : null
+          }
+          error={formik.errors.versionName && formik.touched.versionName}
+        >
+          <Input
+            name='versionName'
+            onChange={({ value }) => formik.setFieldValue('versionName', value)}
+            placeholder='Version number'
+            disabled
+            value={formik.values.versionName}
+            error={formik.errors.versionName && formik.touched.versionName}
+          />
+        </Field>
+
+        <Field
+          label='Description'
+          required
+          error={
+            formik.errors.versionDescription &&
+            formik.touched.versionDescription
+          }
+          validationText={
+            formik.errors.versionDescription &&
+            formik.touched.versionDescription
+              ? formik.errors.versionDescription
+              : null
+          }
+        >
+          <TextArea
+            name='versionDescription'
+            onChange={({ value }) =>
+              formik.setFieldValue('versionDescription', value)
+            }
+            disabled={isView}
+            placeholder='Description'
+            rows={3}
+            required
+            value={formik.values.versionDescription}
+            error={
+              formik.errors.versionDescription &&
+              formik.touched.versionDescription
+            }
+          />
+        </Field>
+      </form>
+      <div className={classes.indicatorsSelect}>
+        <Title text='SELECT INDICATORS TO ADD' />
+        {loadingIndicators ? (
+          <Loading type='skeleton' />
+        ) : (
+          <div className={classes.indicators}>
+            {indicators?.map(indicator => (
+              <Accordion
+                key={indicator.categoryName}
+                title={indicator.categoryName}
+              >
+                {sortIndicatorsByCode(indicator.indicators).map(indicator => (
+                  <IndicatorStack
+                    disabled={isView}
+                    key={indicator.id}
+                    indicator={indicator}
+                    onChange={() => {}}
+                    formik={formik}
+                    isView={isView}
+                  />
+                ))}
+              </Accordion>
+            ))}
+          </div>
+        )}
+      </div>
+    </Card>
+  );
+}
