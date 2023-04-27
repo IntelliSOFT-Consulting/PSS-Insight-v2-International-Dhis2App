@@ -4,9 +4,9 @@ import i18n from '@dhis2/d2-i18n';
 import './App.module.css';
 import './custom.css';
 import { HashRouter, Routes, Route } from 'react-router-dom';
-import mainRoutes from './routes';
 import Home from './Pages/Home';
-import TemplateLayout from './Layouts/TemplateLayout';
+import Layout from './Layouts/Layout';
+import Error404 from './Pages/Error404';
 
 const query = {
   me: {
@@ -23,7 +23,20 @@ const MyApp = () => (
           if (loading) return <span>...</span>;
           return (
             <Routes>
-              <Route path='/*' element={<TemplateLayout user={data} />} />
+              <Route
+                path='/templates/*'
+                element={<Layout layout='Templates' user={data} />}
+              />
+              <Route
+                path='/indicators/*'
+                element={<Layout layout='Indicators' user={data} />}
+              />
+              <Route
+                path='/notifications/*'
+                element={<Layout layout='Notifications' user={data} />}
+              />
+              <Route path='/' element={<Home />} />
+              <Route path='/*' element={<Error404 />} />
             </Routes>
           );
         }}

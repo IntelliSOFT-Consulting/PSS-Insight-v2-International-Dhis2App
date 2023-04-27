@@ -3,8 +3,8 @@ import { listVersions, deleteVersion } from '../api/api';
 import { createUseStyles } from 'react-jss';
 import Card from '../components/Card';
 import { format } from 'date-fns';
-import Table from '../components/Table';
-import { Popconfirm } from 'antd';
+// import Table from '../components/Table';
+import { Popconfirm, Table, Pagination } from 'antd';
 import { Link } from 'react-router-dom';
 import Modal from '../components/Modal';
 import { XCircleIcon } from '@heroicons/react/24/outline';
@@ -19,6 +19,12 @@ const useStyles = createUseStyles({
       textDecoration: 'underline',
       margin: '0 3px',
       padding: 0,
+    },
+  },
+  actionLink: {
+    '&::before': {
+      content: '" | "',
+      color: '#0067B9 !important',
     },
   },
   edit: {
@@ -49,13 +55,19 @@ export default function Versions({ user }) {
   const [deleted, setDeleted] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(15);
 
   const classes = useStyles();
 
+  const pageSize = 15;
+
   const getVersons = async () => {
     try {
-      const data = await listVersions();
+      setLoading(true);
+      const data = await listVersions(pageSize, page);
       setVersions(sortVersions(data?.details));
+      data?.details?.length >= pageSize && setTotal(data?.count);
       setLoading(false);
     } catch (error) {
       setError(error?.response?.data);
@@ -75,70 +87,84 @@ export default function Versions({ user }) {
 
   useEffect(() => {
     getVersons();
-  }, [deleted]);
+  }, [deleted, page]);
 
   const columns = [
     {
-      name: '#',
+      title: '#',
       key: 'id',
-      render: (row, index) => index + 1,
+      render: (_, row, index) => index + 1,
       width: '3rem',
     },
     {
-      name: 'DATE CREATED',
+      title: 'DATE CREATED',
       key: 'createdAt',
-      render: row =>
+      render: (_, row) =>
         row.createdAt && format(new Date(row.createdAt), 'dd/MM/yyyy'),
     },
     {
-      name: 'CREATED BY',
+      title: 'CREATED BY',
       key: 'createdBy',
+      dataIndex: 'createdBy',
     },
     {
-      name: 'VERSION NUMBER',
+      title: 'VERSION NUMBER',
       key: 'versionName',
+      dataIndex: 'versionName',
     },
     {
-      name: 'DESCRIPTION',
+      title: 'DESCRIPTION',
       key: 'versionDescription',
+      dataIndex: 'versionDescription',
     },
     {
-      name: 'STATUS',
+      title: 'STATUS',
       key: 'status',
       render: row =>
         row.status?.charAt(0).toUpperCase() +
         row.status?.slice(1).toLowerCase(),
     },
     {
-      name: 'PUBLISHED BY',
+      title: 'PUBLISHED BY',
       key: 'publishedBy',
+      dataIndex: 'publishedBy',
     },
     {
-      name: 'ACTIONS',
+      title: 'ACTIONS',
       key: 'actions',
       render(row) {
         return (
           <div className={classes.actions}>
-            <Link to={`/view/${row.id}`}>
-              <button className={classes.edit}>View</button> |{' '}
+            <Link to={`/templates/versions/view/${row.id}`}>
+              <button className={classes.edit}>View</button>
             </Link>
             {row?.status !== 'PUBLISHED' &&
             row.createdBy === user?.me?.username ? (
-              <Link to={`/edit/${row.id}`}>
-                <button className={classes.edit}>Edit</button> |{' '}
-              </Link>
+              <>
+                <Link
+                  to={`/templates/versions/edit/${row.id}`}
+                  className={classes.actionLink}
+                >
+                  <button className={classes.edit}>Edit</button>
+                </Link>
+                <Popconfirm
+                  title='Are you sure you want to delete this version?'
+                  onConfirm={() => handleDelete(row.id)}
+                  className={classes.actionLink}
+                >
+                  <button className={classes.delete}>Delete</button>
+                </Popconfirm>
+              </>
             ) : null}
-            <Popconfirm
-              title='Are you sure you want to delete this version?'
-              onConfirm={() => handleDelete(row.id)}
-            >
-              <button className={classes.delete}>Delete</button>
-            </Popconfirm>
           </div>
         );
       },
     },
   ];
+
+  const handlePageChange = newPage => {
+    setPage(newPage);
+  };
 
   return (
     <Card title='TEMPLATES'>
@@ -158,16 +184,17 @@ export default function Versions({ user }) {
       )}
       <Table
         columns={columns}
-        tableData={versions}
+        dataSource={versions}
         loading={loading}
-        emptyMessage='No indicator versions available'
-        pageSize={15}
-        total={versions?.length}
-        pagination={versions?.length > 15}
-        hidePageSizeSelect
-        hidePageSummary
-        hidePageSelect
-        bordered
+        pagination={false}
+      />
+      <Pagination
+        current={page}
+        pageSize={pageSize}
+        onChange={handlePageChange}
+        showSizeChanger={false}
+        showLessItems={true}
+        total={total}
       />
     </Card>
   );

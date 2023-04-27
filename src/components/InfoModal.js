@@ -27,14 +27,22 @@ const useStyles = createUseStyles({
 
 export default function InfoModal(props) {
   const classes = useStyles();
+  const referenceSheetLink = props.referenceSheet
+    ? `http://172.104.91.116:7009/api/v1/master-template/view-file/${props.referenceSheet}`
+    : `${window.location.origin}/#/indicators/indicator/${props.open?.categoryId}`;
   return (
     <Modal {...props} type='info'>
       <div classname={classes.infoModal}>
         <div>{props.open?.indicatorName}</div>
-        <Link to='/#' className={classes.infoLink}>
+        <a
+          href={referenceSheetLink}
+          className={classes.infoLink}
+          target='_blank'
+          rel='noreferrer'
+        >
           <PaperClipIcon />
           Reference Sheet
-        </Link>
+        </a>
       </div>
     </Modal>
   );

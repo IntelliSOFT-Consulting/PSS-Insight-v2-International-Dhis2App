@@ -35,6 +35,9 @@ const useStyles = createUseStyles({
     justifyContent: 'center',
     fontSize: '1rem',
   },
+  hidden: {
+    display: 'none',
+  },
 });
 
 const validationSchema = Yup.object({
@@ -46,7 +49,7 @@ export default function NewVersion({ user }) {
   const [indicators, setIndicators] = useState([]);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState(false);
-  const [showModal, setShowModal] = useState(false);
+  const [referenceSheet, setReferenceSheet] = useState(null);
 
   const { id } = useParams();
   const navigate = useNavigate();
@@ -101,7 +104,7 @@ export default function NewVersion({ user }) {
           setError(false);
           window.scrollTo(0, 0);
           setTimeout(() => {
-            navigate('/');
+            navigate('/templates/versions');
           }, 1000);
         }
       } catch (error) {
@@ -118,6 +121,7 @@ export default function NewVersion({ user }) {
       const data = response[0];
 
       if (data) {
+        setReferenceSheet(data?.referenceSheet);
         formik.setFieldValue('versionName', data?.versionName);
         formik.setFieldValue('versionDescription', data?.versionDescription);
         formik.setFieldValue('isPublished', data?.status === 'PUBLISHED');
@@ -152,8 +156,6 @@ export default function NewVersion({ user }) {
       setLoadingIndicators(false);
     }
   };
-
-  console.log(formik.values);
 
   useEffect(() => {
     getIndicators();
@@ -252,6 +254,7 @@ export default function NewVersion({ user }) {
               : null
           }
           error={formik.errors.versionName && formik.touched.versionName}
+          className={styles.hidden}
         >
           <Input
             name='versionName'
@@ -313,6 +316,7 @@ export default function NewVersion({ user }) {
                     onChange={() => {}}
                     formik={formik}
                     isView={isView}
+                    referenceSheet={referenceSheet}
                   />
                 ))}
               </Accordion>

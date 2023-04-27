@@ -11,6 +11,7 @@ import {
   CenteredContent,
 } from '@dhis2/ui';
 import { createUseStyles } from 'react-jss';
+import { Button } from 'antd';
 
 const useStyles = createUseStyles({
   tableHeader: props => ({
@@ -33,9 +34,10 @@ const Table = ({
   pagination,
   emptyMessage,
   loading,
+  page,
+  setPage,
   ...props
 }) => {
-  const [page, setPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(pageSize || 15);
 
   const classes = useStyles(props);
@@ -48,7 +50,10 @@ const Table = ({
     setRowsPerPage(selected + 1);
   };
 
-  const pageCount = Math.ceil(tableData.length / rowsPerPage);
+  const pageCount = Math.ceil(
+    (tableData.length >= 15 ? tableData.length + 1 : tableData.length) /
+      rowsPerPage
+  );
 
   const getTableData = () => {
     if (loading) {
@@ -71,20 +76,14 @@ const Table = ({
       );
     }
 
-    const visibleTableData = tableData.slice(
-      (page - 1) * rowsPerPage,
-      page * rowsPerPage
-    );
-
-    // Remove cells that are spanned by rowspan or colspan
     const spannedCells = new Set();
-    for (let rowIndex = 0; rowIndex < visibleTableData.length; rowIndex++) {
-      const row = visibleTableData[rowIndex];
+    for (let rowIndex = 0; rowIndex < tableData.length; rowIndex++) {
+      const row = tableData[rowIndex];
       for (let columnIndex = 0; columnIndex < columns.length; columnIndex++) {
         const column = columns[columnIndex];
         const cellValue = row[column.key];
         if (!spannedCells.has(`${rowIndex},${columnIndex}`)) {
-          if (column.rowSpan && rowIndex < visibleTableData.length - 1) {
+          if (column.rowSpan && rowIndex < tableData.length - 1) {
             for (let i = 1; i < column.rowSpan; i++) {
               spannedCells.add(`${rowIndex + i},${columnIndex}`);
             }
@@ -100,7 +99,7 @@ const Table = ({
       }
     }
 
-    return visibleTableData.map((row, rowIndex) => (
+    return tableData.map((row, rowIndex) => (
       <DataTableRow key={rowIndex}>
         {columns.map((column, columnIndex) => {
           if (row[column.key] === null) {
@@ -143,15 +142,33 @@ const Table = ({
         <TableBody>{getTableData()}</TableBody>
       </DataTable>
       {pagination && (
-        <Pagination
-          page={page}
-          pageSize={rowsPerPage}
-          pageCount={pageCount}
-          onPageChange={handleChangePage}
-          onChangeRowsPerPage={handleChangeRowsPerPage}
-          total={tableData.length}
-          {...props}
-        />
+        <div className='pagination'>
+          <Button
+            disabled={page === 1}
+            size='small'
+            onClick={() => handleChangePage(page - 1)}
+          >
+            Prev
+          </Button>
+          <Button
+            disabled={tableData.length < 15}
+            size='small'
+            onClick={() => handleChangePage(page + 1)}
+          >
+            Next
+          </Button>
+        </div>
+        // <Pagination
+        //   page={page}
+        //   pageSize={rowsPerPage}
+        //   pageCount={pageCount}
+        //   onPageChange={handleChangePage}
+        //   onChangeRowsPerPage={handleChangeRowsPerPage}
+        //   total={
+        //     tableData.length >= 15 ? tableData.length + 1 : tableData.length
+        //   }
+        //   {...props}
+        // />
       )}
     </>
   );

@@ -56,7 +56,7 @@ export default function IndicatorStack({
   indicator,
   disabled,
   formik,
-  isView,
+  referenceSheet,
 }) {
   const classes = useStyles();
   const [editModal, setEditModal] = useState(null);
@@ -127,6 +127,7 @@ export default function IndicatorStack({
         open={infoModal}
         type='info'
         footer={null}
+        referenceSheet={referenceSheet}
       />
     </div>
   );

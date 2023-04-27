@@ -1,11 +1,12 @@
-import axios from 'axios';
+import api from './axios';
 
-const api = axios.create({
-  baseURL: 'http://172.104.91.116:7009/api/v1',
-});
-
-export const listVersions = async () => {
-  const { data } = await api.get('/master-template/version');
+export const listVersions = async (size = 15, page = 1) => {
+  const { data } = await api.get('/master-template/version', {
+    params: {
+      limit: size,
+      pageNo: page,
+    },
+  });
   return data;
 };
 
@@ -32,4 +33,4 @@ export const getMasterIndicators = async () => {
 export const updateVersion = async (id, template) => {
   const { data } = await api.put(`/master-template/version/${id}`, template);
   return data;
-}
+};

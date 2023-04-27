@@ -1,88 +1,56 @@
-import React, { useLayoutEffect } from 'react';
+import React, { useEffect } from 'react';
 import { Modal } from 'antd';
+import { createUseStyles } from 'react-jss';
+
+const useStyles = createUseStyles({
+  modal: {
+    '& .ant-modal-content': {
+      '& .ant-modal-close-icon': {
+        color: ({ type }) => {
+          switch (type) {
+            case 'info':
+              return '#0067b9 !important';
+            case 'warning':
+              return '#f39c12 !important';
+            case 'error':
+              return '#FD0C0B !important';
+            case 'success':
+              return '#218838 !important';
+            default:
+              return '#0067b9 !important';
+          }
+        },
+      },
+      '& .ant-modal-header': {
+        backgroundColor: ({ type }) => {
+          switch (type) {
+            case 'info':
+              return '#0067b9 !important';
+            case 'warning':
+              return '#f39c12 !important';
+            case 'error':
+              return '#FD0C0B !important';
+            case 'success':
+              return '#218838 !important';
+            default:
+              return '#0067b9 !important';
+          }
+        },
+
+        '& .ant-modal-title': {
+          color: 'white',
+        },
+      },
+    },
+  },
+});
 
 export default function ModalItem({ children, type, ...props }) {
-  const updateClassName = () => {
-    const modal = document.querySelector('.ant-modal-content');
-    if (modal) {
-      switch (type) {
-        case 'info':
-          document
-            .querySelector('.ant-modal-close-icon')
-            ?.classList.add('icon-info');
-          document
-            .querySelector('.ant-modal-header')
-            ?.classList.add('modal-info');
-          break;
-        case 'warning':
-          document
-            .querySelector('.ant-modal-close-icon')
-            ?.classList.add('icon-warning');
-          document
-            .querySelector('.ant-modal-header')
-            ?.classList.add('modal-warning');
-          break;
-        case 'error':
-          document
-            .querySelector('.ant-modal-close-icon')
-            ?.classList.add('icon-danger');
-          document
-            .querySelector('.ant-modal-header')
-            ?.classList.add('modal-danger');
-          break;
-        case 'success':
-          document
-            .querySelector('.ant-modal-close-icon')
-            ?.classList.add('icon-success');
-          document
-            .querySelector('.ant-modal-header')
-            ?.classList.add('modal-success');
-          break;
-        default:
-          document
-            .querySelector('.ant-modal-close-icon')
-            ?.classList.add('icon-info');
-          document
-            .querySelector('.ant-modal-header')
-            ?.classList.add('modal-info');
-          break;
-      }
-    }
-  };
+  const classes = useStyles({ type });
 
-  useLayoutEffect(() => {
-    if (props.open) {
-      updateClassName();
-    }
-    return () => {
-      document
-        .querySelector('.ant-modal-close-icon')
-        ?.classList.remove('icon-info');
-      document
-        .querySelector('.ant-modal-close-icon')
-        ?.classList.remove('icon-warning');
-      document
-        .querySelector('.ant-modal-close-icon')
-        ?.classList.remove('icon-danger');
-      document
-        .querySelector('.ant-modal-close-icon')
-        ?.classList.remove('icon-success');
-      document
-        .querySelector('.ant-modal-header')
-        ?.classList.remove('modal-info');
-      document
-        .querySelector('.ant-modal-header')
-        ?.classList.remove('modal-warning');
-      document
-        .querySelector('.ant-modal-header')
-        ?.classList.remove('modal-danger');
-      document
-        .querySelector('.ant-modal-header')
-        ?.classList.remove('modal-success');
-    };
-  }, [props.open]);
-
-  console.log('props', props)
-
-  return <Modal {...props}>{children}</Modal>;
+  return (
+    <Modal className={classes.modal} {...props}>
+      {children}
+    </Modal>
+  );
 }
