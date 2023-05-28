@@ -1,7 +1,7 @@
 const config = {
   type: 'app',
-  name: 'PSS Insight v2 Configuration',
-  title: 'PSS Insight v2 Configuration',
+  name: 'PSS Insight',
+  title: 'PSS Insight',
 
   launch_path: '/index.html',
   activities: [

@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Card from '../components/Card';
 import { Form, Radio, Input, Select, Button } from 'antd';
 import { createUseStyles } from 'react-jss';
-import { sendNotification } from '../api/notifications';
+import { sendNotification, listSubscribers } from '../api/notifications';
 import Notification from '../components/Notification';
+import { filterValidEmails } from '../utils/helpers';
 
 const useStyles = createUseStyles({
   grid: {
@@ -42,6 +43,7 @@ const useStyles = createUseStyles({
 
 export default function NotificationBroadCast() {
   const [showEmails, setShowEmails] = useState(false);
+  const [subscribers, setSubscribers] = useState([]);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState(false);
 
@@ -54,6 +56,24 @@ export default function NotificationBroadCast() {
       setShowEmails(changedValues.sendTo === 'emails');
     }
   };
+
+  const getSubscribers = async () => {
+    try {
+      const data = await listSubscribers();
+      const emails = data?.details.map(subscriber => ({
+        label: `${subscriber.firstName} ${subscriber.lastName}`,
+        value: subscriber.email,
+      }));
+      setSubscribers(filterValidEmails(emails));
+    } catch (error) {
+      console.log(error);
+      setError('Failed to load subscribers');
+    }
+  };
+
+  useEffect(() => {
+    getSubscribers();
+  }, []);
 
   const onFinish = async values => {
     try {
@@ -150,7 +170,7 @@ export default function NotificationBroadCast() {
                       const errors = [];
                       value.forEach(email => {
                         if (!email.includes('@')) {
-                          errors.push(new Error('Invalid email'));
+                          errors.push(new Error('Invalid email address'));
                         }
                       });
 
@@ -168,8 +188,18 @@ export default function NotificationBroadCast() {
                 size='large'
                 removeIcon
                 mode='tags'
+                optionLabelProp='label'
                 placeholder='Enter emails'
-              />
+              >
+                {subscribers.map(({ label, value }) => (
+                  <Select.Option key={value} value={value} label={label}>
+                    <span style={{ fontWeight: 'bolder' }} aria-label={label}>
+                      {label}:
+                    </span>
+                    <span>{` ${value}`}</span>
+                  </Select.Option>
+                ))}
+              </Select>
             </Form.Item>
           )}
         </div>

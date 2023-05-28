@@ -4,19 +4,19 @@ import NewIndicator from '../Pages/NewIndicator';
 
 const routes = [
   {
-    path: '/dictionary',
+    path: '/indicators/dictionary',
     element: Indicators,
   },
   {
-    path: '/add',
+    path: '/indicators/add',
     element: NewIndicator,
   },
   {
-    path: '/indicator/:id/edit',
+    path: '/indicators/indicator/:id/edit',
     element: NewIndicator,
   },
   {
-    path: '/indicator/:id',
+    path: '/indicators/indicator/:id',
     element: IndicatorDetails,
   },
 ];

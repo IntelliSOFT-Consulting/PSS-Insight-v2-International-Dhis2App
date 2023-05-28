@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import Card from '../components/Card';
+import CardItem from '../components/Card';
 import { createUseStyles } from 'react-jss';
-import { Form, Input, Select, Button, Table } from 'antd';
+import { Form, Input, Select, Button, Table, Card } from 'antd';
 import Title from '../components/Title';
 import {
   createReference,
@@ -11,6 +11,8 @@ import {
 } from '../api/indicators';
 import Notification from '../components/Notification';
 import { useNavigate, useParams } from 'react-router-dom';
+import FormulaInput from '../components/FormulaInput';
+import { formatFormulaByIndex } from '../utils/helpers';
 
 const useStyles = createUseStyles({
   basicDetails: {
@@ -25,7 +27,7 @@ const useStyles = createUseStyles({
   },
   definition: {
     gridColumn: '2 / 3',
-    gridRow: '2 / 4',
+    gridRow: '3 / 5',
   },
   question: {
     display: 'flex',
@@ -75,18 +77,23 @@ const useStyles = createUseStyles({
     justifyContent: 'flex-end',
     alignItems: 'center',
   },
+  formula: {
+    backgroundColor: '#F5F9FC',
+  },
 });
 
 export default function NewIndicator({ user }) {
   const [questions, setQuestions] = useState([]);
-  const [topics, setTopics] = useState([]);
+  const [topics, setTopics] = useState('');
   const [valueTypes, setValueTypes] = useState([]);
   const [error, setError] = useState(false);
   const [success, setSuccess] = useState(false);
   const [currentQuestion, setCurrentQuestion] = useState({
     name: '',
-    valueType: '',
+    valueType: null,
   });
+  const [isQuantitative, setIsQuantitative] = useState(false);
+
   const classes = useStyles();
 
   const [form] = Form.useForm();
@@ -112,7 +119,7 @@ export default function NewIndicator({ user }) {
     try {
       const data = await getDropdowns();
       if (data) {
-        setTopics(data.topics?.details);
+        // setTopics(data.topics?.details);
         setValueTypes(data.valueType?.details);
       }
     } catch (error) {
@@ -154,7 +161,7 @@ export default function NewIndicator({ user }) {
   const handleKeyPress = () => {
     if (currentQuestion.name && currentQuestion.valueType) {
       setQuestions([...questions, currentQuestion]);
-      setCurrentQuestion({ name: '', valueType: '' });
+      setCurrentQuestion({ name: null, valueType: null });
     }
   };
 
@@ -182,7 +189,20 @@ export default function NewIndicator({ user }) {
           kind='link'
           className={classes.danger}
           onClick={() => {
-            setQuestions(questions.filter((_, i) => i !== index));
+            const denominator = form.getFieldValue('denominator');
+            const numerator = form.getFieldValue('numerator');
+            const denominatorHasQuestion = denominator?.includes(record.name);
+            const numeratorHasQuestion = numerator?.includes(record.name);
+            if (denominatorHasQuestion || numeratorHasQuestion) {
+              setError(
+                'This question is used in a formula. Please remove it from the formula to delete it.'
+              );
+              setTimeout(() => {
+                setError(false);
+              }, 6000);
+            } else {
+              setQuestions(questions.filter((_, i) => i !== index));
+            }
           }}
         >
           Remove
@@ -194,6 +214,9 @@ export default function NewIndicator({ user }) {
 
   const handleSubmit = async values => {
     try {
+      const numerator = values.numerator || '';
+      const denominator = values.denominator || '';
+
       const payload = {
         ...values,
         assessmentQuestions: questions,
@@ -206,40 +229,82 @@ export default function NewIndicator({ user }) {
         },
       };
 
-      const data = id
-        ? await updateReference(id, payload)
-        : await createReference(payload);
-      if (data) {
-        setSuccess(
-          id
-            ? 'Indicator updated successfully!'
-            : 'Indicator created successfully!'
-        );
-        form.resetFields();
-        setQuestions([]);
-
-        setTimeout(() => {
-          setSuccess(false);
-          navigate('/indicators/dictionary');
-        }, 1000);
-      }
+      [numerator, denominator].forEach((formula, index) => {
+        if (formula) {
+          const formattedFormula = formatFormulaByIndex(formula, questions);
+          if (index === 0) {
+            payload.numerator = formattedFormula;
+          } else {
+            payload.denominator = formattedFormula;
+          }
+        }
+      });
+      console.log("Payload", payload);
     } catch (error) {
       setError('Something went wrong!');
     }
   };
 
+  const methodsOfEstimationOptions = [
+    { label: 'Qualitative', value: 'Qualitative' },
+    { label: 'Quantitative', value: 'Quantitative' },
+  ];
+
+  const typeOfFormulaOptions = [
+    { label: 'Percentage', value: 'Percentage' },
+    { label: 'Ratio', value: 'Ratio' },
+  ];
+
+  const components = {
+    'Pharmaceutical Products and Services': [
+      'Procurement',
+      'Distribution',
+      'Use',
+    ],
+    'Policy, Laws, and Governance': [
+      'Pharmaceutical policies',
+      'Pharmaceutical laws and regulations',
+      'Coordination and leadership',
+      'Ethics, transparency and accountability',
+    ],
+    'Regulatory Systems': [
+      'Product assessment and registration',
+      'Licensing of establishments and personnel',
+      'Inspection and enforcement',
+      'Quality and safety surveillance',
+      'Regulation and oversight of clinical trials',
+      'Control of pharmaceutical marketing practices',
+    ],
+    'Innovation, Research and Development, Manufacturing, and Trade': [
+      'Innovation, research and development',
+      'Manufacturing capacity',
+      'Intellectual property and trade',
+    ],
+    Financing: [
+      'Resource coordination, allocation, distribution and payment',
+      'Financial risk protection strategies',
+      'Revenue and expenditure tracking and management',
+      'Costing and pricing',
+    ],
+    'Human Resources': [
+      'Human resources policy and strategy',
+      'Human resources management',
+      'Human resources development',
+    ],
+  };
+
   return (
-    <Card title='ADD INDICATOR' footer={footer}>
+    <CardItem title='ADD INDICATOR' footer={footer}>
       {success && (
         <Notification
-          type='success'
+          status='success'
           message={success}
           onClose={() => setSuccess(false)}
         />
       )}
       {error && (
         <Notification
-          type='error'
+          status='error'
           message={error}
           onClose={() => setError(false)}
         />
@@ -260,19 +325,22 @@ export default function NewIndicator({ user }) {
           </Form.Item>
           <Form.Item
             name='topic'
-            label='Topic'
+            label='System Component/Outcome/Attribute'
             rules={[
               {
                 required: true,
-                message: 'Please select the topic!',
+                message: 'Please select an option!',
               },
             ]}
           >
             <Select
               removeIcon
-              placeholder='Select a topic'
+              placeholder='System Component/Outcome/Attribute'
               size='large'
-              options={topics.map(topic => {
+              onChange={
+                value => setTopics(value)
+              }
+              options={Object.keys(components).map(topic => {
                 return {
                   value: topic,
                   label: topic,
@@ -292,6 +360,31 @@ export default function NewIndicator({ user }) {
             ]}
           >
             <Input placeholder='PSS Insight Indicator #' size='large' />
+          </Form.Item>
+
+             <Form.Item
+            name='dimension'
+            label='System Element/Dimension'
+            rules={[
+              {
+                required: true,
+                message: 'Please select a dimension!',
+              },
+            ]}
+          >
+            <Select
+              removeIcon
+              placeholder='System Element/Dimension'
+              size='large'
+              options={
+                components[topics] &&
+                components[topics].map(topic => {
+                return {
+                  value: topic,
+                  label: topic,
+                };
+              })}
+            ></Select>
           </Form.Item>
           <Form.Item
             name='definition'
@@ -408,18 +501,6 @@ export default function NewIndicator({ user }) {
               rows={4}
             />
           </Form.Item>
-          <Form.Item
-            name='methodOfEstimation'
-            label='Method of Estimation'
-            rules={[
-              {
-                required: true,
-                message: 'Please input the method of estimation!',
-              },
-            ]}
-          >
-            <Input placeholder='Method of Estimation' size='large' />
-          </Form.Item>
 
           <Form.Item
             name='proposedScoring'
@@ -483,7 +564,76 @@ export default function NewIndicator({ user }) {
             />
           </Form.Item>
         </div>
+        <Card title='FORMULA' className={classes.formula} size='small'>
+          <div className={classes.basicDetails}>
+            <Form.Item
+              name='methodOfEstimation'
+              label='Method of Estimation'
+              rules={[
+                {
+                  required: true,
+                  message: 'Please select a method of estimation!',
+                },
+              ]}
+            >
+              <Select
+                placeholder='Select a method of estimation'
+                notFoundContent='No methods of estimation found'
+                size='large'
+                options={methodsOfEstimationOptions}
+                onChange={value => {
+                  if (value === 'Quantitative') {
+                    setIsQuantitative(true);
+                  } else {
+                    setIsQuantitative(false);
+                  }
+                }}
+              />
+            </Form.Item>
+            <Form.Item
+              name='typeOfFormula'
+              label='Type of Formula'
+              rules={[
+                {
+                  required: true,
+                  message: 'Please select a type of formula!',
+                },
+              ]}
+            >
+              <Select
+                placeholder='Select a type of formula'
+                notFoundContent='No types of formula found'
+                size='large'
+                options={typeOfFormulaOptions}
+              />
+            </Form.Item>
+            {isQuantitative && (
+              <>
+                <FormulaInput
+                  questions={questions.map((question, i) => question.name)}
+                  Form={Form}
+                  form={form}
+                  Input={Input}
+                  name='numerator'
+                  label='Numerator'
+                  placeholder={'Numerator'}
+                  required={true}
+                />
+                <FormulaInput
+                  questions={questions.map((question, i) => question.name)}
+                  Form={Form}
+                  form={form}
+                  Input={Input}
+                  name='denominator'
+                  label='Denominator'
+                  placeholder={'Denominator'}
+                  required={true}
+                />
+              </>
+            )}
+          </div>
+        </Card>
       </Form>
-    </Card>
+    </CardItem>
   );
 }

@@ -3,19 +3,19 @@ import Versions from '../Pages/Versions';
 
 const routes = [
   {
-    path: '/versions',
+    path: '/templates/versions',
     element: Versions,
   },
   {
-    path: '/versions/new',
+    path: '/templates/versions/new',
     element: NewVersion,
   },
   {
-    path: '/versions/view/:id',
+    path: '/templates/versions/view/:id',
     element: NewVersion,
   },
   {
-    path: '/versions/edit/:id',
+    path: '/templates/versions/edit/:id',
     element: NewVersion,
   },
 ];

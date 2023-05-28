@@ -5,6 +5,7 @@ import Card from '../components/Card';
 import { format } from 'date-fns';
 // import Table from '../components/Table';
 import { Popconfirm, Table, Pagination } from 'antd';
+import { Button } from '@dhis2/ui';
 import { Link } from 'react-router-dom';
 import Modal from '../components/Modal';
 import { XCircleIcon } from '@heroicons/react/24/outline';
@@ -47,6 +48,12 @@ const useStyles = createUseStyles({
   iconSuccess: {
     width: '6rem',
     color: ' #218838',
+  },
+  title: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    width: '100%',
   },
 });
 
@@ -166,8 +173,17 @@ export default function Versions({ user }) {
     setPage(newPage);
   };
 
+  const title = (
+    <div className={classes.title}>
+      <h3>TEMPLATES</h3>
+      <Link to='/templates/versions/new'>
+        <Button primary>New Version</Button>
+      </Link>
+    </div>
+  );
+
   return (
-    <Card title='TEMPLATES'>
+    <Card title={title}>
       {error && (
         <Modal
           open={error}

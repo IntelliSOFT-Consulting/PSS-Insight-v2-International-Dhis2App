@@ -27,7 +27,6 @@ export const sortIndicatorsByCode = indicators => {
   });
 };
 
-
 export const mergeCategories = data => {
   const categories = data.map(category => category.categoryName);
   const uniqueCategories = [...new Set(categories)];
@@ -43,4 +42,21 @@ export const mergeCategories = data => {
 
 export const sortVersions = versions => {
   return versions.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+};
+
+export const formatFormulaByIndex = (formula, questions) => {
+  const variableRegex = /\{([^}]+)\}/g;
+
+  const replacedFormula = formula?.replace(variableRegex, (match, name) => {
+    const index = questions?.findIndex(q => q.name === name.trim());
+    return index >= 0 ? `{${index.toString()}}` : '0';
+  });
+
+  return replacedFormula;
+};
+
+export const filterValidEmails = emails => {
+  return emails.filter(email => {
+    return email.value.match(/^([\w.%+-]+)@([\w-]+\.)+([\w]{2,})$/);
+  });
 };

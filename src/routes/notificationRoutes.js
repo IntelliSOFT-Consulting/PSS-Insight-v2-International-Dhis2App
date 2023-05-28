@@ -4,11 +4,11 @@ import Error404 from '../Pages/Error404';
 
 const routes = [
   {
-    path: '/create',
+    path: '/notifications/create',
     element: NotificationBroadCast,
   },
   {
-    path: '/subscriptions',
+    path: '/notifications/subscriptions',
     element: NotificationSubscriptions,
   },
   {

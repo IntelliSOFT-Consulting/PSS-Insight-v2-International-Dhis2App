@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import Card from '../components/Card';
 import { Field, Input, TextArea } from '@dhis2/ui';
 import { Button } from 'antd';
@@ -37,6 +37,13 @@ const useStyles = createUseStyles({
   },
   hidden: {
     display: 'none',
+  },
+  cardFooter: {
+    display: 'flex',
+    justifyContent: 'flex-end',
+    '& button': {
+      marginRight: '1rem',
+    },
   },
 });
 
@@ -176,8 +183,16 @@ export default function NewVersion({ user }) {
     }
   }, [success]);
 
+  useEffect(() => {
+    if (formik.errors.versionDescription && formik.touched.versionDescription) {
+      const descriptionRef = document.getElementById('versionDescription');
+      descriptionRef.scrollIntoView({ behavior: 'smooth' });
+      descriptionRef.focus();
+    }
+  }, [formik.errors.versionDescription, formik.touched.versionDescription]);
+
   const footer = (
-    <div className={classes.cardFooter}>
+    <div className={styles.cardFooter}>
       <Button
         name='Small button'
         onClick={formik.handleReset}
@@ -282,6 +297,7 @@ export default function NewVersion({ user }) {
         >
           <TextArea
             name='versionDescription'
+            id='versionDescription'
             onChange={({ value }) =>
               formik.setFieldValue('versionDescription', value)
             }
