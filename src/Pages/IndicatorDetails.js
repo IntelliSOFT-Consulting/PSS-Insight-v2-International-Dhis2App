@@ -114,8 +114,12 @@ export default function () {
 
   const data2 = [
     {
-      name: 'Topic',
-      value: indicator?.topic,
+      name: 'System Component',
+      value: indicator?.systemComponent,
+    },
+    {
+      name: 'System Element',
+      value: indicator?.systemElement,
     },
     {
       name: 'Definition',
@@ -134,7 +138,7 @@ export default function () {
     },
     {
       name: 'Expected Frequency of Data Dissemination',
-      value: indicator?.expectedFrequencyOfDataDissemination,
+      value: indicator?.expectedFrequencyDataDissemination,
     },
     {
       name: 'Data Type',

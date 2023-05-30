@@ -10,9 +10,9 @@ import { createUseStyles } from 'react-jss';
 const useStyles = createUseStyles({
   '@global': {
     'svg.checked.disabled': {
-      fill: '#D7D8D8 !important',
+      fill: '#ABABAB !important',
       '& .background': {
-        fill: '#D7D8D8 !important',
+        fill: '#ABABAB !important',
       },
     },
   },
