@@ -1,4 +1,8 @@
-This project was bootstrapped with [DHIS2 Application Platform](https://github.com/dhis2/app-platform).
+# PSS Insights v2 International Instance DHIS2 Configurations App
+
+This DHIS2 app enables international administrators to create and customize templates for country-specific PSS Insights tool instances. With this application, administrators can tailor templates with specific indicators for data collection at the country level. Additionally, the app allows administrators to manage an indicator dictionary and notification services.
+
+This app was bootstrapped with [DHIS2 Application Platform](https://github.com/dhis2/app-platform).
 
 ## Available Scripts
 
@@ -6,33 +10,33 @@ In the project directory, you can run:
 
 ### `yarn start`
 
-Runs the app in the development mode.<br />
+Runs the app in the development mode.`<br />`
 Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
 
-The page will reload if you make edits.<br />
+The page will reload if you make edits.`<br />`
 You will also see any lint errors in the console.
 
 ### `yarn test`
 
-Launches the test runner and runs all available tests found in `/src`.<br />
+Launches the test runner and runs all available tests found in `/src`.`<br />`
 
 See the section about [running tests](https://platform.dhis2.nu/#/scripts/test) for more information.
 
 ### `yarn build`
 
-Builds the app for production to the `build` folder.<br />
+Builds the app for production to the `build` folder.`<br />`
 It correctly bundles React in production mode and optimizes the build for the best performance.
 
-The build is minified and the filenames include the hashes.<br />
+The build is minified and the filenames include the hashes.`<br />`
 A deployable `.zip` file can be found in `build/bundle`!
 
 See the section about [building](https://platform.dhis2.nu/#/scripts/build) for more information.
 
 ### `yarn deploy`
 
-Deploys the built app in the `build` folder to a running DHIS2 instance.<br />
-This command will prompt you to enter a server URL as well as the username and password of a DHIS2 user with the App Management authority.<br/>
-You must run `yarn build` before running `yarn deploy`.<br />
+Deploys the built app in the `build` folder to a running DHIS2 instance.`<br />`
+This command will prompt you to enter a server URL as well as the username and password of a DHIS2 user with the App Management authority.`<br/>`
+You must run `yarn build` before running `yarn deploy`.`<br />`
 
 See the section about [deploying](https://platform.dhis2.nu/#/scripts/deploy) for more information.
 
