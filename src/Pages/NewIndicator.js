@@ -254,9 +254,15 @@ export default function NewIndicator({ user }) {
       delete payload.denominator;
       delete payload.format;
 
-      const saveReference = id ? updateReference(id, payload) : createReference(payload);
+      const saveReference = id
+        ? updateReference(id, payload)
+        : createReference(payload);
       if (saveReference) {
-        setSuccess(()=>id ? 'Indicator updated successfully!' : 'Indicator created successfully!');
+        setSuccess(() =>
+          id
+            ? 'Indicator updated successfully!'
+            : 'Indicator created successfully!'
+        );
         setTimeout(() => {
           setSuccess(false);
           navigate('/indicators/dictionary');
@@ -487,16 +493,7 @@ export default function NewIndicator({ user }) {
           />
         </div>
         <div className={classes.basicDetails}>
-          <Form.Item
-            name='purposeAndIssues'
-            label='Purpose and Issues'
-            rules={[
-              {
-                required: true,
-                message: 'Please input the purpose and issues!',
-              },
-            ]}
-          >
+          <Form.Item name='purposeAndIssues' label='Purpose and Issues'>
             <Input.TextArea
               placeholder='Purpose and Issues'
               size='large'
@@ -504,16 +501,7 @@ export default function NewIndicator({ user }) {
             />
           </Form.Item>
 
-          <Form.Item
-            name='preferredDataSources'
-            label='Preferred Data Sources'
-            rules={[
-              {
-                required: true,
-                message: 'Please input the preferred data sources!',
-              },
-            ]}
-          >
+          <Form.Item name='preferredDataSources' label='Preferred Data Sources'>
             <Input.TextArea
               placeholder='Preferred Data Sources'
               size='large'
@@ -523,20 +511,10 @@ export default function NewIndicator({ user }) {
 
           <Form.Item
             name='proposedScoring'
-            label='Proposed Scoring or Benchmarking'
-            rules={[
-              {
-                required: true,
-                message: 'Please input the proposed scoring or benchmarking!',
-              },
-            ]}
+            label='Targets'
             className={classes.definition}
           >
-            <Input.TextArea
-              placeholder='Proposed Scoring or Benchmarking'
-              size='large'
-              rows={5}
-            />
+            <Input.TextArea placeholder='Targets' size='large' rows={5} />
           </Form.Item>
           <Form.Item
             name='expectedFrequencyDataDissemination'
@@ -566,16 +544,7 @@ export default function NewIndicator({ user }) {
           >
             <Input placeholder='Indicator Reference Number(s)' size='large' />
           </Form.Item>
-          <Form.Item
-            name='indicatorSource'
-            label='Indicator Source(s)'
-            rules={[
-              {
-                required: true,
-                message: 'Please input the indicator source(s)!',
-              },
-            ]}
-          >
+          <Form.Item name='indicatorSource' label='Indicator Source(s)'>
             <Input.TextArea
               placeholder='Indicator Source(s)'
               size='large'
