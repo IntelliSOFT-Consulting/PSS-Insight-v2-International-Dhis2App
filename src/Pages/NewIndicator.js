@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import CardItem from '../components/Card';
 import { createUseStyles } from 'react-jss';
-import { Form, Input, Select, Button, Table, Card } from 'antd';
+import { Form, Input, Select, Button, Table, Card, Space } from 'antd';
 import Title from '../components/Title';
 import {
   createReference,
@@ -12,7 +12,8 @@ import {
 import Notification from '../components/Notification';
 import { useNavigate, useParams } from 'react-router-dom';
 import FormulaInput from '../components/FormulaInput';
-import { formatFormulaByIndex } from '../utils/helpers';
+import { formatFormulaByIndex, sentenceCase } from '../utils/helpers';
+import OptionsForm from '../components/optionsForm';
 
 const useStyles = createUseStyles({
   basicDetails: {
@@ -80,6 +81,33 @@ const useStyles = createUseStyles({
   formula: {
     backgroundColor: '#F5F9FC',
   },
+  selections: {
+    margin: '1rem 0px',
+    padding: '1rem 0px',
+    '& .ant-btn-block': {
+      marginTop: '1rem',
+    },
+  },
+  questionsContainer: {
+    padding: '10px',
+    border: '1px dashed #ccc',
+    borderRadius: '5px',
+    backgroundColor: '#E0E0E0',
+    margin: '10px 0px',
+    width: '50%',
+    '& >h1': {
+      fontSize: '15px',
+      fontWeight: 'bold',
+      padding: '0px',
+      margin: '0px',
+    },
+    '& .ant-btn-dashed': {
+      '&:hover': {
+        color: '#0266b9 !important',
+        borderColor: '#0266b9 !important',
+      },
+    },
+  },
 });
 
 export default function NewIndicator({ user }) {
@@ -88,10 +116,7 @@ export default function NewIndicator({ user }) {
   const [valueTypes, setValueTypes] = useState([]);
   const [error, setError] = useState(false);
   const [success, setSuccess] = useState(false);
-  const [currentQuestion, setCurrentQuestion] = useState({
-    name: '',
-    valueType: null,
-  });
+  const [currentQuestion, setCurrentQuestion] = useState();
   const [isQuantitative, setIsQuantitative] = useState(false);
 
   const classes = useStyles();
@@ -161,7 +186,7 @@ export default function NewIndicator({ user }) {
   );
 
   const handleKeyPress = () => {
-    if (currentQuestion.name && currentQuestion.valueType) {
+    if (currentQuestion?.name && currentQuestion?.valueType) {
       setQuestions([...questions, currentQuestion]);
       setCurrentQuestion({ name: null, valueType: null });
     }
@@ -322,6 +347,10 @@ export default function NewIndicator({ user }) {
     ],
   };
 
+  const addQuestionOptions = values => {
+    console.log(values);
+  };
+
   return (
     <CardItem title='ADD INDICATOR' footer={footer}>
       {success && (
@@ -440,7 +469,9 @@ export default function NewIndicator({ user }) {
               options={valueTypes?.map(dataType => {
                 return {
                   value: dataType,
-                  label: dataType,
+                  label: sentenceCase(
+                    dataType?.replace(/SELECTION/g, 'Yes/No')
+                  ),
                 };
               })}
             />
@@ -452,7 +483,7 @@ export default function NewIndicator({ user }) {
             <Input
               placeholder='Add Question'
               size='large'
-              value={currentQuestion.name}
+              value={currentQuestion?.name}
               onChange={e =>
                 setCurrentQuestion({
                   ...currentQuestion,
@@ -464,22 +495,39 @@ export default function NewIndicator({ user }) {
               className={classes.select}
               placeholder={'Select a type'}
               size='large'
-              value={currentQuestion.valueType}
+              value={currentQuestion?.valueType}
               onChange={value =>
                 setCurrentQuestion({ ...currentQuestion, valueType: value })
               }
-              options={valueTypes?.map(valueType => {
-                return {
-                  value: valueType,
-                  label: valueType,
-                };
-              })}
+              options={[
+                ...(valueTypes?.map(valueType => {
+                  return {
+                    value: valueType,
+                    label: sentenceCase(
+                      valueType?.replace(/SELECTION/g, 'Yes/No')
+                    ),
+                  };
+                }) || []),
+                {
+                  label: 'Selection',
+                  value: 'CODED',
+                },
+              ]}
             />
 
             <Button size='large' type='primary' onClick={handleKeyPress}>
               Add
             </Button>
           </div>
+          {currentQuestion?.valueType === 'CODED' && (
+            <div className={classes.questionsContainer}>
+              <h1>Add Selection Options</h1>
+              <div className={classes.selections}>
+                <OptionsForm onFinish={addQuestionOptions} />
+              </div>
+            </div>
+          )}
+
           <Table
             className={classes.table}
             dataSource={questions}

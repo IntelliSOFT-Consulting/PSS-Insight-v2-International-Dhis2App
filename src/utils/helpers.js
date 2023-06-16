@@ -60,3 +60,8 @@ export const filterValidEmails = emails => {
     return email.value.match(/^([\w.%+-]+)@([\w-]+\.)+([\w]{2,})$/);
   });
 };
+
+export const sentenceCase = str => {
+  if (!str) return '';
+  return str?.charAt(0)?.toUpperCase() + str?.toLowerCase()?.slice(1);
+};
