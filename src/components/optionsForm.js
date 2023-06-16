@@ -1,4 +1,8 @@
-import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons';
+import {
+  MinusCircleOutlined,
+  PlusOutlined,
+  DeleteOutlined,
+} from '@ant-design/icons';
 import { Button, Form, Input, Space } from 'antd';
 import { createUseStyles } from 'react-jss';
 
@@ -14,6 +18,9 @@ const useStyles = createUseStyles({
     display: 'flex',
     alignItems: 'center',
     paddingBottom: '10px',
+  },
+  delete: {
+    color: '#bb0c2f',
   },
 });
 
@@ -52,7 +59,10 @@ const OptionsForm = ({ onFinish }) => {
                 >
                   <Input placeholder='Option' />
                 </Form.Item>
-                <MinusCircleOutlined onClick={() => remove(name)} />
+                <DeleteOutlined
+                  className={classes.delete}
+                  onClick={() => remove(name)}
+                />
               </div>
             ))}
             <Form.Item>
