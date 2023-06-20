@@ -9,6 +9,7 @@ import {
 import EditModal from './EditModal';
 import InfoModal from './InfoModal';
 import { sortIndicators } from '../utils/helpers';
+import { Input } from 'antd';
 
 const useStyles = createUseStyles({
   indicatorStack: {
@@ -72,16 +73,30 @@ export default function IndicatorStack({
       name: (
         <div className={classes.tableFlex}>
           <span>{indicator.indicatorName || ''}</span>
-          <ExclamationCircleIcon
-            className={classes.info}
-            onClick={() => setInfoModal(indicator)}
-          />
         </div>
       ),
       key: 'name',
       render: row => (
         <div className={classes.tableFlex}>
           <span>{row.name}</span>
+        </div>
+      ),
+    },
+    {
+      name: (
+        <div className={classes.tableFlex}>
+          <span>International Benchmark</span>
+          <ExclamationCircleIcon
+            className={classes.info}
+            onClick={() => setInfoModal(indicator)}
+          />
+        </div>
+      ),
+      width: '12rem',
+      key: 'internationalBenchmark',
+      render: row => (
+        <div className={classes.tableFlex}>
+          <Input />
         </div>
       ),
     },

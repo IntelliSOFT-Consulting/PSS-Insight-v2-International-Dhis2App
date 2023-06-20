@@ -59,7 +59,7 @@ export default function InfoModal(props) {
   const classes = useStyles();
   const referenceSheetLink = props.referenceSheet
     ? `http://172.104.91.116:7009/api/v1/master-template/view-file/${props.referenceSheet}`
-    : `${window.location.origin}/#/indicators/indicator/${props.open?.categoryId}`;
+    : `${window.location.origin}/#/indicators/indicator/${props.open?.uuid}`;
   return (
     <Modal {...props} type='info'>
       <div classname={classes.infoModal}>
