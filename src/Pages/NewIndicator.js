@@ -14,6 +14,8 @@ import { useNavigate, useParams } from 'react-router-dom';
 import FormulaInput from '../components/FormulaInput';
 import { formatFormulaByIndex, sentenceCase } from '../utils/helpers';
 import OptionsForm from '../components/optionsForm';
+import { useDataMutation } from '@dhis2/app-runtime';
+import delay from '../utils/delay';
 
 const useStyles = createUseStyles({
   basicDetails: {
@@ -125,6 +127,68 @@ export default function NewIndicator({ user }) {
 
   const navigate = useNavigate();
   const { id } = useParams();
+
+  // create option set
+
+  const optionsMutation = {
+    resource: 'options',
+    type: 'create',
+    data: ({ name, code, sortOrder, optionSet }) => ({
+      name,
+      code,
+      sortOrder,
+      optionSet,
+    }),
+  };
+  const mutation = {
+    resource: 'optionSets',
+    type: 'create',
+    data: ({ name }) => ({
+      name,
+      valueType: 'TEXT',
+    }),
+  };
+
+  const [mutate] = useDataMutation(mutation);
+  const [mutateOptions] = useDataMutation(optionsMutation);
+
+  const createOptionSet = async () => {
+    const questionsWithOptionSet = questions.filter(
+      question => question.options
+    );
+    const optionSet = await Promise.all(
+      questionsWithOptionSet.map(async question => {
+        const { name, options } = question;
+        const { response } = await mutate({
+          name,
+          options,
+        });
+        const optionSetId = response.uid;
+        await Promise.all(
+          options.map(async (option, i) => {
+            await delay(i, 500);
+            await mutateOptions({
+              name: option,
+              code: option,
+              sortOrder: i + 1,
+              optionSet: {
+                id: optionSetId,
+              },
+            });
+
+            return {
+              optionSetId,
+            };
+          })
+        );
+        return {
+          ...question,
+          optionSetId,
+        };
+      })
+    );
+    return { optionSetId: optionSet[0]?.optionSetId };
+  };
 
   const fetchDetails = async () => {
     try {
@@ -244,9 +308,23 @@ export default function NewIndicator({ user }) {
       const numerator = values.numerator || '';
       const denominator = values.denominator || '';
 
+      const finalQuestions = await Promise.all(
+        questions.map(async question => {
+          if (question.options) {
+            const { optionSetId } = await createOptionSet();
+            delete question.options;
+            return {
+              ...question,
+              optionSetId,
+            };
+          }
+          return question;
+        })
+      );
+
       let payload = {
         ...values,
-        assessmentQuestions: questions,
+        assessmentQuestions: finalQuestions,
         createdBy: {
           id: user?.me?.id,
           code: '',
@@ -348,7 +426,9 @@ export default function NewIndicator({ user }) {
   };
 
   const addQuestionOptions = values => {
-    console.log(values);
+    const { options } = values;
+    const textOptions = options?.map(option => option?.key);
+    setCurrentQuestion({ ...currentQuestion, options: textOptions });
   };
 
   return (

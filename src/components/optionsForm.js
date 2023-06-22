@@ -26,12 +26,17 @@ const useStyles = createUseStyles({
 
 const OptionsForm = ({ onFinish }) => {
   const classes = useStyles();
+  const [form] = Form.useForm();
   return (
     <Form
       name='optionsForm'
-      onFinish={onFinish}
+      form={form}
       autoComplete='off'
       className={classes.root}
+      onValuesChange={(_changedValues, allValues) => {
+        form.validateFields();
+        onFinish(allValues);
+      }}
     >
       <Form.List name='options'>
         {(fields, { add, remove }) => (
@@ -78,11 +83,6 @@ const OptionsForm = ({ onFinish }) => {
           </>
         )}
       </Form.List>
-      {/* <Form.Item>
-      <Button type='primary' htmlType='submit'>
-        Submit
-      </Button>
-    </Form.Item> */}
     </Form>
   );
 };
