@@ -128,8 +128,6 @@ export default function NewIndicator({ user }) {
   const navigate = useNavigate();
   const { id } = useParams();
 
-  // create option set
-
   const optionsMutation = {
     resource: 'options',
     type: 'create',
@@ -156,38 +154,25 @@ export default function NewIndicator({ user }) {
     const questionsWithOptionSet = questions.filter(
       question => question.options
     );
-    const optionSet = await Promise.all(
-      questionsWithOptionSet.map(async question => {
-        const { name, options } = question;
-        const { response } = await mutate({
-          name,
-          options,
+    const optionSetPromises = questionsWithOptionSet.map(async question => {
+      const { name, options } = question;
+      const { response } = await mutate({ name, options });
+      const optionSetId = response.uid;
+      const optionPromises = options.map(async (option, i) => {
+        await delay(i, 500);
+        await mutateOptions({
+          name: option,
+          code: option,
+          sortOrder: i + 1,
+          optionSet: { id: optionSetId },
         });
-        const optionSetId = response.uid;
-        await Promise.all(
-          options.map(async (option, i) => {
-            await delay(i, 500);
-            await mutateOptions({
-              name: option,
-              code: option,
-              sortOrder: i + 1,
-              optionSet: {
-                id: optionSetId,
-              },
-            });
-
-            return {
-              optionSetId,
-            };
-          })
-        );
-        return {
-          ...question,
-          optionSetId,
-        };
-      })
-    );
-    return { optionSetId: optionSet[0]?.optionSetId };
+        return { optionSetId };
+      });
+      await Promise.all(optionPromises);
+      return { ...question, optionSetId };
+    });
+    const optionSetResults = await Promise.all(optionSetPromises);
+    return { optionSetId: optionSetResults[0]?.optionSetId };
   };
 
   const fetchDetails = async () => {
@@ -312,10 +297,18 @@ export default function NewIndicator({ user }) {
         questions.map(async question => {
           if (question.options) {
             const { optionSetId } = await createOptionSet();
+            const options = question.options?.map(option => ({
+              name: option,
+              code: option,
+            }));
+
             delete question.options;
             return {
               ...question,
-              optionSetId,
+              optionSet: {
+                id: optionSetId,
+                options,
+              },
             };
           }
           return question;
