@@ -63,7 +63,7 @@ export default function InfoModal(props) {
     ? `http://172.104.91.116:7009/api/v1/master-template/view-file/${props.referenceSheet}`
     : `${
         pathname !== '/' ? origin + pathname : origin
-      }/#/indicators/indicator/${props.open?.uuid}`;
+      }#/indicators/indicator/${props.open?.uuid}`;
   return (
     <Modal {...props} type='info'>
       <div classname={classes.infoModal}>
