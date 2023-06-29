@@ -26,7 +26,7 @@ const useStyles = createUseStyles({
   },
   dropdown: {
     position: 'absolute',
-    top: '75px',
+    top: '40px',
     left: 0,
     zIndex: 1,
     minWidth: '100%',

@@ -124,7 +124,7 @@ const InputWithFormula = ({
         tooltip="To add a question to your formula, just type the opening curly brace symbol '{' and choose from the options that appear. This will allow you to easily incorporate previously added questions into your formula."
         rules={[
           {
-            required,
+            required:true,
             message: `${label} is required.`,
           },
           {

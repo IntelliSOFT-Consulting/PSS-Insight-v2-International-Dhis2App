@@ -530,11 +530,15 @@ export default function NewIndicator({ user }) {
           </Form.Item>
 
           <Form.Item
-            name='proposedScoring'
-            label='Targets'
+            name='benchmark'
+            label='International Benchmark'
             className={classes.definition}
           >
-            <Input.TextArea placeholder='Targets' size='large' rows={5} />
+            <Input.TextArea
+              placeholder='International Benchmark'
+              size='large'
+              rows={5}
+            />
           </Form.Item>
           <Form.Item
             name='expectedFrequencyDataDissemination'
@@ -622,18 +626,17 @@ export default function NewIndicator({ user }) {
                 size='small'
                 style={{ marginBottom: '10px' }}
               />
-              <Form.Item name='expression' label='Expression'>
-                <ExpressionInput
-                  questions={questions.map((question, i) => question.name)}
-                  Form={Form}
-                  form={form}
-                  Input={Input}
-                  name='expression'
-                  placeholder='Expression'
-                  required={true}
-                  indicatorName={indicatorName}
-                />
-              </Form.Item>
+
+              <ExpressionInput
+                questions={questions.map((question, i) => question.name)}
+                Form={Form}
+                form={form}
+                Input={Input}
+                name='expression'
+                placeholder='Expression'
+                label='Expression'
+                indicatorName={indicatorName}
+              />
             </div>
 
             <FormulaInput
