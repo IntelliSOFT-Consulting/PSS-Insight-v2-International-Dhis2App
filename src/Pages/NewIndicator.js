@@ -2,26 +2,18 @@ import React, { useState, useEffect } from 'react';
 import CardItem from '../components/Card';
 import { Form, Input, Select, Button, Table, Card, Space, Alert } from 'antd';
 import Title from '../components/Title';
-import {
-  createReference,
-  getReferenceDetails,
-  updateReference,
-  getDropdowns,
-} from '../api/indicators';
+import { getReferenceDetails, getDropdowns } from '../api/indicators';
 import Notification from '../components/Notification';
 import { useNavigate, useParams } from 'react-router-dom';
 import FormulaInput from '../components/FormulaInput';
-import { formatFormulaByIndex, sentenceCase } from '../utils/helpers';
+import { sentenceCase } from '../utils/helpers';
 import OptionsForm from '../components/optionsForm';
-import { useDataMutation } from '@dhis2/app-runtime';
+import { useDataMutation, useDataQuery } from '@dhis2/app-runtime';
 import delay from '../utils/delay';
-import {
-  methodsOfEstimationOptions,
-  typeOfFormulaOptions,
-  components,
-} from '../data/options';
+import { aggregationTypes, components, dataTypeOptions } from '../data/options';
 import useStyles from './styles/newIndicator';
 import useAddDictionary from '../hooks/useAddDictionary';
+import ExpressionInput from '../components/ExpressionInput';
 
 export default function NewIndicator({ user }) {
   const [questions, setQuestions] = useState([]);
@@ -30,11 +22,25 @@ export default function NewIndicator({ user }) {
   const [error, setError] = useState(false);
   const [success, setSuccess] = useState(false);
   const [currentQuestion, setCurrentQuestion] = useState();
-  const [isQuantitative, setIsQuantitative] = useState(false);
+  const [indicatorName, setIndicatorName] = useState('');
   const [validations, setValidations] = useState(null);
-  const [dictionaryData, setDictionaryData] = useState({});
+  const [loading, setLoading] = useState(false);
 
-  const { loading, createIndicator } = useAddDictionary();
+  const {
+    loading: indicatorTypeLoading,
+    error: indicatorTypeError,
+    // destructure indicatorTypes
+    data: { indicatorTypes: { indicatorTypes } = {} } = {},
+  } = useDataQuery({
+    indicatorTypes: {
+      resource: 'indicatorTypes',
+      params: {
+        fields: 'id,displayName',
+      },
+    },
+  });
+
+  const { createDataElements, success: indicatorSuccess } = useAddDictionary();
 
   const classes = useStyles();
 
@@ -124,6 +130,16 @@ export default function NewIndicator({ user }) {
     }
     fetchDropdowns();
   }, [id]);
+
+  useEffect(() => {
+    if (indicatorSuccess) {
+      setSuccess('Indicator added successfully!');
+      setTimeout(() => {
+        setSuccess(false);
+        navigate('/indicators/dictionary');
+      }, 2000);
+    }
+  }, [indicatorSuccess]);
 
   const handleAddQuestion = () => {
     if (currentQuestion?.name && currentQuestion?.valueType) {
@@ -234,32 +250,16 @@ export default function NewIndicator({ user }) {
         },
         formula: {
           format: values.format,
+          numerator,
+          denominator,
         },
       };
-
-      [numerator, denominator].forEach((formula, index) => {
-        if (formula) {
-          const formattedFormula = formatFormulaByIndex(formula, questions);
-          payload.formula = {
-            ...payload.formula,
-            [index === 0 ? 'numerator' : 'denominator']: formattedFormula,
-          };
-        }
-      });
 
       delete payload.numerator;
       delete payload.denominator;
       delete payload.format;
 
-      const formattedElement = createIndicator(payload);
-
-      // if (formattedElement && !loading) {
-      //   setSuccess('Indicator added successfully!');
-      //   setTimeout(() => {
-      //     setSuccess(false);
-      //     navigate('/indicators/dictionary');
-      //   }, 2000);
-      // }
+      await createDataElements(payload);
     } catch (error) {
       console.log(error);
       setError('Something went wrong!');
@@ -290,11 +290,27 @@ export default function NewIndicator({ user }) {
           form.submit();
         }}
         className={classes.btnSuccess}
+        loading={loading}
       >
         Save
       </Button>
     </div>
   );
+
+  const methods = [
+    'if()',
+    'isNull()',
+    'isNotNull()',
+    'AND',
+    'NOT',
+    'OR',
+    '==',
+    '<',
+    '>',
+    '>=',
+    '<=',
+    '!=',
+  ];
 
   return (
     <CardItem title='ADD INDICATOR' footer={footer}>
@@ -324,7 +340,11 @@ export default function NewIndicator({ user }) {
               },
             ]}
           >
-            <Input placeholder='Name' size='large' />
+            <Input
+              onChange={e => setIndicatorName(e.target.value)}
+              placeholder='Name'
+              size='large'
+            />
           </Form.Item>
           <Form.Item
             name='systemComponent'
@@ -411,14 +431,7 @@ export default function NewIndicator({ user }) {
             <Select
               placeholder='Select a data type'
               size='large'
-              options={valueTypes?.map(dataType => {
-                return {
-                  value: dataType,
-                  label: sentenceCase(
-                    dataType?.replace(/SELECTION/g, 'Yes/No')
-                  ),
-                };
-              })}
+              options={dataTypeOptions}
             />
           </Form.Item>
         </div>
@@ -559,9 +572,7 @@ export default function NewIndicator({ user }) {
             />
           </Form.Item>
         </div>
-        <Form.Item name='expression' label='Expression'>
-          <Input placeholder='Expression' size='large' />
-        </Form.Item>
+
         <Card title='FORMULA' className={classes.formula} size='small'>
           <div className={classes.basicDetails}>
             <Form.Item
@@ -578,14 +589,7 @@ export default function NewIndicator({ user }) {
                 placeholder='Select a method of estimation'
                 notFoundContent='No methods of estimation found'
                 size='large'
-                options={methodsOfEstimationOptions}
-                onChange={value => {
-                  if (value === 'Quantitative') {
-                    setIsQuantitative(true);
-                  } else {
-                    setIsQuantitative(false);
-                  }
-                }}
+                options={aggregationTypes}
               />
             </Form.Item>
             <Form.Item
@@ -602,34 +606,58 @@ export default function NewIndicator({ user }) {
                 placeholder='Select a type of formula'
                 notFoundContent='No types of formula found'
                 size='large'
-                options={typeOfFormulaOptions}
+                options={indicatorTypes?.map(item => ({
+                  label: item?.displayName,
+                  value: item?.id,
+                }))}
               />
             </Form.Item>
+            <div className={classes.expression}>
+              <Alert
+                showIcon
+                message={`Allowed methods are:\n ${
+                  methods?.join(', ') || ''
+                } (case insensitive)`}
+                type='info'
+                size='small'
+                style={{ marginBottom: '10px' }}
+              />
+              <Form.Item name='expression' label='Expression'>
+                <ExpressionInput
+                  questions={questions.map((question, i) => question.name)}
+                  Form={Form}
+                  form={form}
+                  Input={Input}
+                  name='expression'
+                  placeholder='Expression'
+                  required={true}
+                  indicatorName={indicatorName}
+                />
+              </Form.Item>
+            </div>
 
-            {isQuantitative && (
-              <>
-                <FormulaInput
-                  questions={questions.map((question, i) => question.name)}
-                  Form={Form}
-                  form={form}
-                  Input={Input}
-                  name='numerator'
-                  label='Numerator'
-                  placeholder={'Numerator'}
-                  required={true}
-                />
-                <FormulaInput
-                  questions={questions.map((question, i) => question.name)}
-                  Form={Form}
-                  form={form}
-                  Input={Input}
-                  name='denominator'
-                  label='Denominator'
-                  placeholder={'Denominator'}
-                  required={true}
-                />
-              </>
-            )}
+            <FormulaInput
+              questions={questions.map((question, i) => question.name)}
+              Form={Form}
+              form={form}
+              Input={Input}
+              name='numerator'
+              label='Numerator'
+              placeholder={'Numerator'}
+              required={true}
+              indicatorName={indicatorName}
+            />
+            <FormulaInput
+              questions={questions.map((question, i) => question.name)}
+              Form={Form}
+              form={form}
+              Input={Input}
+              name='denominator'
+              label='Denominator'
+              placeholder={'Denominator'}
+              required={true}
+              indicatorName={indicatorName}
+            />
           </div>
         </Card>
       </Form>

@@ -11,6 +11,12 @@ const useStyles = createUseStyles({
       gridTemplateColumns: '1fr',
     },
   },
+
+  expression: {
+    gridColumn: '1 / 3',
+    gridRow: '2 / 3',
+    
+  },
   definition: {
     gridColumn: '2 / 3',
     gridRow: '3 / 5',

@@ -44,15 +44,28 @@ export const sortVersions = versions => {
   return versions.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 };
 
-export const formatFormulaByIndex = (formula, questions) => {
+export const formatFormula = (formula, dataElements) => {
   const variableRegex = /\{([^}]+)\}/g;
 
   const replacedFormula = formula?.replace(variableRegex, (match, name) => {
-    const index = questions?.findIndex(q => q.name === name.trim());
-    return index >= 0 ? `{${index.toString()}}` : '0';
+    const index = dataElements?.find(q => q.name?.trim() === name.trim());
+    return `#{${index.id.toString()}}`;
   });
 
+  console.log('replacedFormula: ', replacedFormula);
+
   return replacedFormula;
+};
+
+export const formatExpression = (formula, dataElements, programStageId) => {
+  const variableRegex = /\{([^}]+)\}/g;
+
+  const replacedFormula = formula?.replace(variableRegex, (match, name) => {
+    const index = dataElements?.find(q => q.name?.trim() === name.trim());
+    return `#{${programStageId}}.#{${index.id.toString()}}`;
+  });
+
+  return replacedFormula?.trim();
 };
 
 export const filterValidEmails = emails => {
