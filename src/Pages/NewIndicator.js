@@ -14,7 +14,7 @@ import { aggregationTypes, components, dataTypeOptions } from '../data/options';
 import useStyles from './styles/newIndicator';
 import useAddDictionary from '../hooks/useAddDictionary';
 import ExpressionInput from '../components/ExpressionInput';
-import { uuid } from 'uuidv4';
+import { v4 as uuidv4 } from 'uuid';
 
 export default function NewIndicator({ user }) {
   const [questions, setQuestions] = useState([]);
@@ -251,7 +251,7 @@ export default function NewIndicator({ user }) {
           numerator,
           denominator,
         },
-        uuid: uuid(),
+        uuid: uuidv4(),
       };
 
       delete payload.numerator;
