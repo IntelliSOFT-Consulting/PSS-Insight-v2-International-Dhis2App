@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import CardItem from '../components/Card';
-import { Form, Input, Select, Button, Table, Card, Space, Alert } from 'antd';
+import { Form, Input, Select, Button, Table, Card, Alert } from 'antd';
 import Title from '../components/Title';
 import { getReferenceDetails, getDropdowns } from '../api/indicators';
 import Notification from '../components/Notification';
@@ -14,6 +14,7 @@ import { aggregationTypes, components, dataTypeOptions } from '../data/options';
 import useStyles from './styles/newIndicator';
 import useAddDictionary from '../hooks/useAddDictionary';
 import ExpressionInput from '../components/ExpressionInput';
+import { uuid } from 'uuidv4';
 
 export default function NewIndicator({ user }) {
   const [questions, setQuestions] = useState([]);
@@ -181,12 +182,10 @@ export default function NewIndicator({ user }) {
     {
       title: 'QUESTIONS',
       dataIndex: 'name',
-      key: 'name',
     },
     {
       title: 'TYPE',
       dataIndex: 'valueType',
-      key: 'valueType',
       render: text =>
         text === 'SELECTION' ? 'Yes/No' : text === 'NUMBER' ? 'Number' : 'Text',
       width: '30%',
@@ -194,7 +193,6 @@ export default function NewIndicator({ user }) {
     {
       title: 'ACTIONS',
       dataIndex: 'action',
-      key: 'action',
       render: (_, record, index) => (
         <Button
           type='danger'
@@ -253,6 +251,7 @@ export default function NewIndicator({ user }) {
           numerator,
           denominator,
         },
+        uuid: uuid(),
       };
 
       delete payload.numerator;
@@ -510,6 +509,7 @@ export default function NewIndicator({ user }) {
             locale={{
               emptyText: 'No questions added yet',
             }}
+            rowKey={record => record.name}
           />
         </div>
         <div className={classes.basicDetails}>

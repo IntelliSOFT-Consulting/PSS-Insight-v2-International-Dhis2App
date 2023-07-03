@@ -52,8 +52,6 @@ export const formatFormula = (formula, dataElements) => {
     return `#{${index.id.toString()}}`;
   });
 
-  console.log('replacedFormula: ', replacedFormula);
-
   return replacedFormula;
 };
 
