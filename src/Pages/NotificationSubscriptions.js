@@ -44,14 +44,6 @@ export default function NotificationSubscriptions() {
       dataIndex: 'email',
       key: 'email',
     },
-    {
-      title: 'ACTION',
-      dataIndex: 'action',
-      key: 'action',
-      render: (_, record) => (
-        <Link to={`/notifications/view/${record.id}`}>View</Link>
-      ),
-    },
   ];
   return (
     <Card title='NOTIFICATION SUBSCRIPTIONS'>

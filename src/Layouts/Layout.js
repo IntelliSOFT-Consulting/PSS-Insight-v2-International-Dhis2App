@@ -6,7 +6,6 @@ import Loader from '../components/Loader';
 import templateRoutes from '../routes/templateRoutes';
 import indicatorRoutes from '../routes/indicatorRoutes';
 import notificationRoutes from '../routes/notificationRoutes';
-import configRoutes from '../routes/configRoutes';
 import logRoutes from '../routes/logRoutes';
 import { createUseStyles } from 'react-jss';
 import Home from '../Pages/Home';
@@ -108,17 +107,12 @@ export default function MainLayout() {
       label: createLink('Change Logs', '/changelogs'),
       key: 'changelogs',
     },
-    {
-      label: createLink('Configurations', '/configurations'),
-      key: 'configurations',
-    },
   ];
 
   const routes = [
     ...templateRoutes,
     ...indicatorRoutes,
     ...notificationRoutes,
-    ...configRoutes,
     ...logRoutes,
   ];
 
