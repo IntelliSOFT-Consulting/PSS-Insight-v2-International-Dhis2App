@@ -153,7 +153,7 @@ const ExpressionInput = ({
 
                 // allow if(,isNull(, isNotNull(, AND, NOT, OR using regex
                 const allowedMethods =
-                  /if\(|isNull\(|isNotNull\(|AND|NOT|OR|==|<|>|>=|<=|!=/g;
+                  /if\(|isNull\(|isNotNull\(|AND|NOTEQUAL|OR|==|<|>|>=|<=/g;
                 if (
                   !allowedMethods.test(value) &&
                   !/^(?:\{[\w\s]+\}|[\d+\-*/.()])+$/.test(value)

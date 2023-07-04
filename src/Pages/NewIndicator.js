@@ -301,14 +301,13 @@ export default function NewIndicator({ user }) {
     'isNull()',
     'isNotNull()',
     'AND',
-    'NOT',
+    'NOTEQUAL',
     'OR',
     '==',
     '<',
     '>',
     '>=',
     '<=',
-    '!=',
   ];
 
   return (
@@ -559,12 +558,7 @@ export default function NewIndicator({ user }) {
           <Form.Item
             name='indicatorReference'
             label='Indicator Reference Number(s)'
-            rules={[
-              {
-                required: true,
-                message: 'Please input the indicator reference number(s)!',
-              },
-            ]}
+            tooltip='This is the indicator number from the indicator source (If applicable)'
           >
             <Input placeholder='Indicator Reference Number(s)' size='large' />
           </Form.Item>
@@ -619,9 +613,12 @@ export default function NewIndicator({ user }) {
             <div className={classes.expression}>
               <Alert
                 showIcon
-                message={`Allowed methods are:\n ${
-                  methods?.join(', ') || ''
-                } (case insensitive)`}
+                message={
+                  <p>
+                    The following <b>case sensitive</b> methods are allowed:
+                    <i>{`\t${methods?.join(', ') || ''}`}</i>
+                  </p>
+                }
                 type='info'
                 size='small'
                 style={{ marginBottom: '10px' }}
