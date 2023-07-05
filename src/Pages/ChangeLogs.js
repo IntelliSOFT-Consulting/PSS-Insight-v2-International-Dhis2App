@@ -40,8 +40,8 @@ export default function ChangeLogs() {
     },
     {
       title: 'DATE ADDDED',
-      dataIndex: 'date',
-      key: 'date',
+      dataIndex: 'dateAdded',
+      key: 'dateAdded',
       render: date => date && format(new Date(date), 'dd/MM/yyyy'),
     },
     {
