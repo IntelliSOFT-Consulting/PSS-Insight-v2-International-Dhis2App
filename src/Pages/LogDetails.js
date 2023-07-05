@@ -2,15 +2,37 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import CardItem from '../components/Card';
 import { viewLog } from '../api/logs';
+import { Table } from 'antd';
+import { createUseStyles } from 'react-jss';
+
+const useStyles = createUseStyles({
+  grid: {
+    display: 'grid',
+    gridTemplateColumns: '1fr 1fr',
+    gridGap: '20px',
+    '@media (max-width: 1020px)': {
+      gridTemplateColumns: '1fr',
+    },
+  },
+});
 
 export default function LogDetails() {
   const { version } = useParams();
+  const styles = useStyles();
 
   const [log, setLog] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   const fetchLog = async () => {
-    const data = await viewLog(version);
-    setLog(data?.details);
+    try {
+      const data = await viewLog(version);
+      setLog(data?.details);
+    } catch (error) {
+      if (error.response.status < 400) {
+        setLog(error.response.data?.details);
+      }
+    }
   };
 
   useEffect(() => {
@@ -37,15 +59,15 @@ export default function LogDetails() {
 
     {
       name: 'Indicator',
-      value: log?.indicatorName,
+      value: log?.indicator || '-',
     },
   ];
 
   const data2 = [
-    { name: 'Location', value: log?.location },
+    { name: 'Location', value: log?.country},
     {
       name: 'Changes',
-      value: log?.changes,
+      value: log?.changes || '-',
     },
   ];
   return (
