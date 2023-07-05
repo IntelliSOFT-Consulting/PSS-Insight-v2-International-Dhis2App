@@ -10,7 +10,12 @@ import { sentenceCase } from '../utils/helpers';
 import OptionsForm from '../components/optionsForm';
 import { useDataMutation, useDataQuery } from '@dhis2/app-runtime';
 import delay from '../utils/delay';
-import { aggregationTypes, components, dataTypeOptions } from '../data/options';
+import {
+  aggregationTypes,
+  components,
+  dataTypeOptions,
+  valueTypeOptions,
+} from '../data/options';
 import useStyles from './styles/newIndicator';
 import useAddDictionary from '../hooks/useAddDictionary';
 import ExpressionInput from '../components/ExpressionInput';
@@ -186,8 +191,18 @@ export default function NewIndicator({ user }) {
     {
       title: 'TYPE',
       dataIndex: 'valueType',
-      render: text =>
-        text === 'SELECTION' ? 'Yes/No' : text === 'NUMBER' ? 'Number' : 'Text',
+      render: (text, _record) => {
+        switch (text) {
+          case 'BOOLEAN':
+            return 'Yes/No';
+          case 'NUMBER':
+            return 'Number';
+          case 'CODED':
+            return 'Multiple Choice';
+          default:
+            return 'Text';
+        }
+      },
       width: '30%',
     },
     {
@@ -458,20 +473,7 @@ export default function NewIndicator({ user }) {
                   setValidations(null);
                   setCurrentQuestion({ ...currentQuestion, valueType: value });
                 }}
-                options={[
-                  ...(valueTypes?.map(valueType => {
-                    return {
-                      value: valueType,
-                      label: sentenceCase(
-                        valueType?.replace(/SELECTION/g, 'Yes/No')
-                      ),
-                    };
-                  }) || []),
-                  {
-                    label: 'Multiple Choice',
-                    value: 'CODED',
-                  },
-                ]}
+                options={valueTypeOptions}
               />
             </div>
             {currentQuestion?.valueType === 'CODED' && (
@@ -549,10 +551,12 @@ export default function NewIndicator({ user }) {
                   'Please input the expected frequency of data dissemination!',
               },
             ]}
+            initialValue={'Yearly'}
           >
             <Input
               placeholder='Expected Frequency of Data Dissemination'
               size='large'
+              disabled
             />
           </Form.Item>
           <Form.Item

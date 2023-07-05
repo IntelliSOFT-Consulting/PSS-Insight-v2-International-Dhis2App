@@ -20,6 +20,7 @@ import { createUseStyles } from 'react-jss';
 import { useParams, useNavigate } from 'react-router-dom';
 import { mergeCategories, sortIndicatorsByCode } from '../utils/helpers';
 import Modal from '../components/Modal';
+import { useDataEngine } from '@dhis2/app-runtime';
 
 const useStyles = createUseStyles({
   alertBar: {
@@ -57,11 +58,72 @@ export default function NewVersion({ user }) {
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState(false);
   const [referenceSheet, setReferenceSheet] = useState(null);
+  const [benchmarks, setBenchmarks] = useState([]);
 
   const { id } = useParams();
   const navigate = useNavigate();
+  const engine = useDataEngine();
 
   const isView = window.location.href.includes('view');
+
+    const queryBenchmarks = async () => {
+      // get dataSets
+      const { data } = await engine.query({
+        data: {
+          resource: 'dataSets',
+          params: {
+            fields: 'id,name',
+            paging: false,
+            filter: 'name:ilike:Benchmark',
+          },
+        },
+      });
+
+      const { data: dataElements } = await engine.query({
+        data: {
+          resource: 'dataElements',
+          params: {
+            fields: 'id,name,displayName',
+            paging: false,
+            filter: 'name:ilike:Benchmark',
+          },
+        },
+      });
+
+      if (
+        data?.dataSets?.length > 0 &&
+        dataElements?.dataElements?.length > 0
+      ) {
+        const dataSetId = data?.dataSets[0]?.id;
+        const { data: dataValues } = await engine.query({
+          data: {
+            resource: 'dataValueSets',
+            params: {
+              orgUnit: user?.me?.organisationUnits[0]?.id,
+              period: new Date().getFullYear() - 1,
+              dataSet: dataSetId,
+              paging: false,
+              fields: 'dataElement,value,displayName',
+            },
+          },
+        });
+        const benchmarkData = dataElements?.dataElements?.map(element => {
+          const dataValue = dataValues?.dataValues?.find(
+            value => value.dataElement === element.id
+          );
+          return {
+            id: element.id,
+            name: element.displayName
+              ?.replace('Benchmark', '')
+              ?.replace('_', ''),
+            value: dataValue?.value || 0,
+          };
+        });
+        setBenchmarks(benchmarkData);
+        return benchmarkData;
+      }
+      return [];
+    };
 
   const styles = useStyles();
   const formik = useFormik({
@@ -152,6 +214,7 @@ export default function NewVersion({ user }) {
   const getIndicators = async () => {
     try {
       setLoadingIndicators(true);
+      await queryBenchmarks();
       const res = await getMasterIndicators();
 
       const data = mergeCategories(res);
@@ -333,6 +396,9 @@ export default function NewVersion({ user }) {
                     formik={formik}
                     isView={isView}
                     referenceSheet={referenceSheet}
+                    benchmarks={benchmarks}
+                    setBenchmarks={setBenchmarks}
+                    orgUnit={user?.me?.organisationUnits[0]?.id}
                   />
                 ))}
               </Accordion>

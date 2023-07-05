@@ -58,7 +58,6 @@ const useStyles = createUseStyles({
 export default function InfoModal(props) {
   const classes = useStyles();
   const { origin, pathname } = window.location;
-  console.log('pathname', pathname);
   const referenceSheetLink = props.referenceSheet
     ? `http://172.104.91.116:7009/api/v1/master-template/view-file/${props.referenceSheet}`
     : `${

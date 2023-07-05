@@ -91,8 +91,8 @@ export default function useAddDictionary() {
         code: `${datas.indicatorCode}${String.fromCharCode(97 + index)}`,
         domainType: 'TRACKER',
         valueType: data.valueType?.replace('CODED', 'TEXT'),
-        aggregationType:
-          data.valueType === ('TEXT' || 'CODED') ? 'COUNT' : 'SUM',
+        aggregationType: datas.methodOfEstimation,
+
       };
       if (data.optionSet) {
         dataElement.optionSet = {
@@ -251,11 +251,6 @@ export default function useAddDictionary() {
       program: { id: stages?.programs?.[0]?.id },
       expression: 'V{event_count}',
       displayInForm: true,
-      filter: formatExpression(
-        dictionary.expression,
-        dataElements,
-        stages?.programs[0]?.programStages?.[0]?.id
-      ),
 
       analyticsType: 'EVENT',
       aggregationType: dictionary.methodOfEstimation,
@@ -270,6 +265,13 @@ export default function useAddDictionary() {
         },
       ],
     };
+    if (dictionary.expression) {
+      programIndicator.filter = formatExpression(
+        dictionary.expression,
+        dataElements,
+        stages?.programs[0]?.programStages?.[0]?.id
+      );
+    }
     const { response: programIndicatorResponse } = await engine.mutate({
       resource: 'programIndicators',
       type: 'create',

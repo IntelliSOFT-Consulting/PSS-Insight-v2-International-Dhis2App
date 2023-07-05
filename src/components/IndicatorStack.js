@@ -10,6 +10,7 @@ import EditModal from './EditModal';
 import InfoModal from './InfoModal';
 import { sortIndicators } from '../utils/helpers';
 import { Input } from 'antd';
+import { useDataEngine } from '@dhis2/app-runtime';
 
 const useStyles = createUseStyles({
   indicatorStack: {
@@ -58,10 +59,45 @@ export default function IndicatorStack({
   disabled,
   formik,
   referenceSheet,
+  benchmarks,
+  setBenchmarks,
+  orgUnit,
 }) {
   const classes = useStyles();
   const [editModal, setEditModal] = useState(null);
   const [infoModal, setInfoModal] = useState(null);
+
+  const engine = useDataEngine();
+
+  const onEditBenchmark = e => {
+    const { name, value } = e.target;
+    setBenchmarks(prevState => {
+      const updated = prevState.map(benchmark => {
+        if (benchmark.name === name) {
+          return { ...benchmark, value };
+        }
+        return benchmark;
+      });
+      return updated;
+    });
+  };
+
+  const onBlurBenchmark = async e => {
+    const { name, value } = e.target;
+    const benchmark = benchmarks.find(benchmark => benchmark.name === name);
+    if (benchmark) {
+      await engine.mutate({
+        resource: 'dataValues',
+        type: 'create',
+        params: {
+          ou: orgUnit,
+          de: benchmark.id,
+          pe: new Date().getFullYear() - 1,
+          value,
+        },
+      });
+    }
+  };
 
   const columns = [
     {
@@ -93,12 +129,23 @@ export default function IndicatorStack({
         </div>
       ),
       width: '12rem',
-      key: 'internationalBenchmark',
+      key: 'id',
       render: row => (
         <div className={classes.tableFlex}>
-          <Input />
+          <Input
+            name={indicator.categoryName}
+            value={
+              benchmarks?.find(
+                benchmark => benchmark.name === indicator.categoryName
+              )?.value || ''
+            }
+            onChange={onEditBenchmark}
+            onBlur={onBlurBenchmark}
+            placeholder='International Benchmark'
+          />
         </div>
       ),
+      rowSpan: indicator.indicatorDataValue?.length?.toString(),
     },
   ];
 
