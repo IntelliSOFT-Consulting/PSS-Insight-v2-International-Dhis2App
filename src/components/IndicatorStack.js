@@ -11,6 +11,7 @@ import InfoModal from './InfoModal';
 import { sortIndicators } from '../utils/helpers';
 import { Input } from 'antd';
 import { useDataEngine } from '@dhis2/app-runtime';
+import { saveBenchmark } from '../api/api';
 
 const useStyles = createUseStyles({
   indicatorStack: {
@@ -95,6 +96,13 @@ export default function IndicatorStack({
           pe: new Date().getFullYear() - 1,
           value,
         },
+      });
+      await saveBenchmark({
+        dataElement: benchmark.id,
+        value,
+        orgUnit,
+        period: new Date().getFullYear() - 1,
+        indicatorCode: benchmark.name,
       });
     }
   };

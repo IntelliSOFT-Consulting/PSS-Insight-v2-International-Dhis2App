@@ -34,3 +34,8 @@ export const updateVersion = async (id, template) => {
   const { data } = await api.put(`/master-template/version/${id}`, template);
   return data;
 };
+
+export const saveBenchmark = async (benchmark) => {
+  const { data } = await api.post(`/benchmarks/save`, benchmark);
+  return data;
+}
