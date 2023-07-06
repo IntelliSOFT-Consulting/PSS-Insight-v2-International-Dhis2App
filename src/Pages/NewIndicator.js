@@ -8,7 +8,11 @@ import { useNavigate, useParams } from 'react-router-dom';
 import FormulaInput from '../components/FormulaInput';
 import { sentenceCase } from '../utils/helpers';
 import OptionsForm from '../components/optionsForm';
-import { useDataMutation, useDataQuery } from '@dhis2/app-runtime';
+import {
+  useDataMutation,
+  useDataQuery,
+  useDataEngine,
+} from '@dhis2/app-runtime';
 import delay from '../utils/delay';
 import {
   aggregationTypes,
@@ -31,6 +35,7 @@ export default function NewIndicator({ user }) {
   const [indicatorName, setIndicatorName] = useState('');
   const [validations, setValidations] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [elements, setElements] = useState([]);
 
   const {
     loading: indicatorTypeLoading,
@@ -51,6 +56,8 @@ export default function NewIndicator({ user }) {
   const classes = useStyles();
 
   const [form] = Form.useForm();
+
+  const engine = useDataEngine();
 
   const navigate = useNavigate();
   const { id } = useParams();
@@ -76,6 +83,20 @@ export default function NewIndicator({ user }) {
 
   const [mutate] = useDataMutation(mutation);
   const [mutateOptions] = useDataMutation(optionsMutation);
+
+  const getDataElements = async () => {
+    const { data: { dataElements } = {} } = await engine.query({
+      data: {
+        resource: 'dataElements',
+        params: {
+          fields: 'id,displayName,code',
+          paging: false,
+        },
+      },
+    });
+    setElements(dataElements);
+    return dataElements;
+  };
 
   const createOptionSet = async () => {
     const questionsWithOptionSet = questions.filter(
@@ -138,6 +159,10 @@ export default function NewIndicator({ user }) {
   }, [id]);
 
   useEffect(() => {
+    getDataElements();
+  }, []);
+
+  useEffect(() => {
     if (indicatorSuccess) {
       setSuccess('Indicator added successfully!');
       setTimeout(() => {
@@ -147,8 +172,21 @@ export default function NewIndicator({ user }) {
     }
   }, [indicatorSuccess]);
 
+  const checkElementName = name => {
+    const element = elements.find(
+      element => element.displayName === name || element.code === name
+    );
+    return element?.id;
+  };
+
   const handleAddQuestion = () => {
     if (currentQuestion?.name && currentQuestion?.valueType) {
+      if (checkElementName(currentQuestion?.name)) {
+        setValidations(
+          'This question alredy exists in the system. Please use another question'
+        );
+        return;
+      }
       if (currentQuestion?.valueType === 'CODED') {
         if (
           !currentQuestion?.options ||
@@ -351,6 +389,16 @@ export default function NewIndicator({ user }) {
                 required: true,
                 message: 'Please input the indicator name!',
               },
+              {
+                validator: (_, value) => {
+                  if (checkElementName(value)) {
+                    return Promise.reject(
+                      'Indicator with this name/code already exists'
+                    );
+                  }
+                  return Promise.resolve();
+                },
+              },
             ]}
           >
             <Input
@@ -390,6 +438,16 @@ export default function NewIndicator({ user }) {
               {
                 required: true,
                 message: 'Please input the indicator code!',
+              },
+              {
+                validator: (_, value) => {
+                  if (checkElementName(value)) {
+                    return Promise.reject(
+                      'Indicator with this name/code already exists'
+                    );
+                  }
+                  return Promise.resolve();
+                },
               },
             ]}
           >
