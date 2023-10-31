@@ -67,6 +67,7 @@ export default function NewVersion({ user }) {
   const isView = window.location.href.includes('view');
 
     const queryBenchmarks = async () => {
+      try {
       // get dataSets
       const { data } = await engine.query({
         data: {
@@ -123,6 +124,9 @@ export default function NewVersion({ user }) {
         return benchmarkData;
       }
       return [];
+    } catch (error) {
+      return [];
+    }
     };
 
   const styles = useStyles();

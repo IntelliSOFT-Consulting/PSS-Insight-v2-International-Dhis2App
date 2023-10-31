@@ -66,8 +66,11 @@ export default function InfoModal(props) {
   return (
     <Modal {...props} type='info'>
       <div classname={classes.infoModal}>
-        <div>{props.open?.indicatorName}</div>
-        <div class={classes.guide}>
+        <div 
+        >
+          {props.open?.description?.trim()?.replace(/(\r\n|\n|\r|\t)/gm, '')}
+        </div>
+        <div className={classes.guide}>
           <div>
             <div>
               <InformationCircleIcon className={classes.infoIcon} />
