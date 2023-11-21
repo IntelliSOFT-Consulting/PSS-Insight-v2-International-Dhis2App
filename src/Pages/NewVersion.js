@@ -21,6 +21,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { mergeCategories, sortIndicatorsByCode } from '../utils/helpers';
 import Modal from '../components/Modal';
 import { useDataEngine } from '@dhis2/app-runtime';
+import useBenchmarks from '../hooks/useBenchmarks';
 
 const useStyles = createUseStyles({
   alertBar: {
@@ -58,11 +59,14 @@ export default function NewVersion({ user }) {
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState(false);
   const [referenceSheet, setReferenceSheet] = useState(null);
-  const [benchmarks, setBenchmarks] = useState([]);
 
   const { id } = useParams();
   const navigate = useNavigate();
   const engine = useDataEngine();
+
+  const { getDataValues, saveDataValues, dataValues } = useBenchmarks();
+
+  console.log('dataValues', dataValues);
 
   const isView = window.location.href.includes('view');
 
@@ -120,7 +124,6 @@ export default function NewVersion({ user }) {
             value: dataValue?.value || 0,
           };
         });
-        setBenchmarks(benchmarkData);
         return benchmarkData;
       }
       return [];
@@ -400,8 +403,8 @@ export default function NewVersion({ user }) {
                     formik={formik}
                     isView={isView}
                     referenceSheet={referenceSheet}
-                    benchmarks={benchmarks}
-                    setBenchmarks={setBenchmarks}
+                    benchmarks={dataValues}
+                    saveBenchmark={saveDataValues}
                     orgUnit={user?.me?.organisationUnits[0]?.id}
                   />
                 ))}

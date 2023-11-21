@@ -1,38 +1,37 @@
-import React, { useState, useEffect } from 'react';
-import CardItem from '../components/Card';
-import { Form, Input, Select, Button, Table, Card, Alert } from 'antd';
-import Title from '../components/Title';
-import { getReferenceDetails, getDropdowns } from '../api/indicators';
-import Notification from '../components/Notification';
-import { useNavigate, useParams } from 'react-router-dom';
-import FormulaInput from '../components/FormulaInput';
-import { sentenceCase } from '../utils/helpers';
-import OptionsForm from '../components/optionsForm';
+import React, { useState, useEffect } from "react";
+import CardItem from "../components/Card";
+import { Form, Input, Select, Button, Table, Card, Alert } from "antd";
+import Title from "../components/Title";
+import { getReferenceDetails, getDropdowns } from "../api/indicators";
+import Notification from "../components/Notification";
+import { useNavigate, useParams } from "react-router-dom";
+import FormulaInput from "../components/FormulaInput";
+import OptionsForm from "../components/optionsForm";
 import {
   useDataMutation,
   useDataQuery,
   useDataEngine,
-} from '@dhis2/app-runtime';
-import delay from '../utils/delay';
+} from "@dhis2/app-runtime";
+import delay from "../utils/delay";
 import {
   aggregationTypes,
   components,
   dataTypeOptions,
   valueTypeOptions,
-} from '../data/options';
-import useStyles from './styles/newIndicator';
-import useAddDictionary from '../hooks/useAddDictionary';
-import ExpressionInput from '../components/ExpressionInput';
-import { v4 as uuidv4 } from 'uuid';
+} from "../data/options";
+import useStyles from "./styles/newIndicator";
+import useAddDictionary from "../hooks/useAddDictionary";
+import ExpressionInput from "../components/ExpressionInput";
+import { v4 as uuidv4 } from "uuid";
 
 export default function NewIndicator({ user }) {
   const [questions, setQuestions] = useState([]);
-  const [topics, setTopics] = useState('');
+  const [topics, setTopics] = useState("");
   const [valueTypes, setValueTypes] = useState([]);
   const [error, setError] = useState(false);
   const [success, setSuccess] = useState(false);
   const [currentQuestion, setCurrentQuestion] = useState();
-  const [indicatorName, setIndicatorName] = useState('');
+  const [indicatorName, setIndicatorName] = useState("");
   const [validations, setValidations] = useState(null);
   const [loading, setLoading] = useState(false);
   const [elements, setElements] = useState([]);
@@ -44,9 +43,9 @@ export default function NewIndicator({ user }) {
     data: { indicatorTypes: { indicatorTypes } = {} } = {},
   } = useDataQuery({
     indicatorTypes: {
-      resource: 'indicatorTypes',
+      resource: "indicatorTypes",
       params: {
-        fields: 'id,displayName',
+        fields: "id,displayName",
       },
     },
   });
@@ -62,9 +61,11 @@ export default function NewIndicator({ user }) {
   const navigate = useNavigate();
   const { id } = useParams();
 
+  const pathName = window.location.hash;
+
   const optionsMutation = {
-    resource: 'options',
-    type: 'create',
+    resource: "options",
+    type: "create",
     data: ({ name, code, sortOrder, optionSet }) => ({
       name,
       code,
@@ -73,11 +74,11 @@ export default function NewIndicator({ user }) {
     }),
   };
   const mutation = {
-    resource: 'optionSets',
-    type: 'create',
+    resource: "optionSets",
+    type: "create",
     data: ({ name }) => ({
       name,
-      valueType: 'TEXT',
+      valueType: "TEXT",
     }),
   };
 
@@ -87,9 +88,9 @@ export default function NewIndicator({ user }) {
   const getDataElements = async () => {
     const { data: { dataElements } = {} } = await engine.query({
       data: {
-        resource: 'dataElements',
+        resource: "dataElements",
         params: {
-          fields: 'id,displayName,code',
+          fields: "id,displayName,code",
           paging: false,
         },
       },
@@ -100,9 +101,9 @@ export default function NewIndicator({ user }) {
 
   const createOptionSet = async () => {
     const questionsWithOptionSet = questions.filter(
-      question => question.options
+      (question) => question.options
     );
-    const optionSetPromises = questionsWithOptionSet.map(async question => {
+    const optionSetPromises = questionsWithOptionSet.map(async (question) => {
       const { name, options } = question;
       const { response } = await mutate({ name, options });
       const optionSetId = response.uid;
@@ -136,7 +137,7 @@ export default function NewIndicator({ user }) {
         setQuestions(data.assessmentQuestions);
       }
     } catch (error) {
-      setError('Something went wrong!');
+      setError("Something went wrong!");
     }
   };
 
@@ -147,7 +148,7 @@ export default function NewIndicator({ user }) {
         setValueTypes(data.valueType?.details);
       }
     } catch (error) {
-      setError('Something went wrong!');
+      setError("Something went wrong!");
     }
   };
 
@@ -164,17 +165,17 @@ export default function NewIndicator({ user }) {
 
   useEffect(() => {
     if (indicatorSuccess) {
-      setSuccess('Indicator added successfully!');
+      setSuccess("Indicator added successfully!");
       setTimeout(() => {
         setSuccess(false);
-        navigate('/indicators/dictionary');
+        navigate("/indicators/dictionary");
       }, 2000);
     }
   }, [indicatorSuccess]);
 
-  const checkElementName = name => {
+  const checkElementName = (name) => {
     const element = elements.find(
-      element => element.displayName === name || element.code === name
+      (element) => element.displayName === name || element.code === name
     );
     return element?.id;
   };
@@ -183,16 +184,16 @@ export default function NewIndicator({ user }) {
     if (currentQuestion?.name && currentQuestion?.valueType) {
       if (checkElementName(currentQuestion?.name)) {
         setValidations(
-          'This question alredy exists in the system. Please use another question'
+          "This question alredy exists in the system. Please use another question"
         );
         return;
       }
-      if (currentQuestion?.valueType === 'CODED') {
+      if (currentQuestion?.valueType === "CODED") {
         if (
           !currentQuestion?.options ||
           currentQuestion?.options?.length === 0
         ) {
-          setValidations('Please add options for this question');
+          setValidations("Please add options for this question");
           return;
         }
       }
@@ -200,18 +201,18 @@ export default function NewIndicator({ user }) {
       setCurrentQuestion({ name: null, valueType: null });
       setValidations(null);
     } else {
-      setValidations('Please add a question and select a type');
+      setValidations("Please add a question and select a type");
     }
   };
 
   const handleRemoveClick = (record, index) => {
-    const denominator = form.getFieldValue('denominator');
-    const numerator = form.getFieldValue('numerator');
+    const denominator = form.getFieldValue("denominator");
+    const numerator = form.getFieldValue("numerator");
     const denominatorHasQuestion = denominator?.includes(record.name);
     const numeratorHasQuestion = numerator?.includes(record.name);
     if (denominatorHasQuestion || numeratorHasQuestion) {
       setError(
-        'This question is used in a formula. Please remove it from the formula to delete it.'
+        "This question is used in a formula. Please remove it from the formula to delete it."
       );
       setTimeout(() => {
         setError(false);
@@ -223,52 +224,52 @@ export default function NewIndicator({ user }) {
 
   const columns = [
     {
-      title: 'QUESTIONS',
-      dataIndex: 'name',
+      title: "QUESTIONS",
+      dataIndex: "name",
     },
     {
-      title: 'TYPE',
-      dataIndex: 'valueType',
+      title: "TYPE",
+      dataIndex: "valueType",
       render: (text, _record) => {
         switch (text) {
-          case 'BOOLEAN':
-            return 'Yes/No';
-          case 'NUMBER':
-            return 'Number';
-          case 'CODED':
-            return 'Multiple Choice';
+          case "BOOLEAN":
+            return "Yes/No";
+          case "NUMBER":
+            return "Number";
+          case "CODED":
+            return "Multiple Choice";
           default:
-            return 'Text';
+            return "Text";
         }
       },
-      width: '30%',
+      width: "30%",
     },
     {
-      title: 'ACTIONS',
-      dataIndex: 'action',
+      title: "ACTIONS",
+      dataIndex: "action",
       render: (_, record, index) => (
         <Button
-          type='danger'
-          kind='link'
+          type="danger"
+          kind="link"
           className={classes.danger}
           onClick={() => handleRemoveClick(record, index)}
         >
           Remove
         </Button>
       ),
-      width: '20%',
+      width: "20%",
     },
   ];
 
-  const handleSubmit = async values => {
+  const handleSubmit = async (values) => {
     try {
-      const { numerator = '', denominator = '' } = values;
+      const { numerator = "", denominator = "" } = values;
 
       const finalQuestions = await Promise.all(
-        questions.map(async question => {
+        questions.map(async (question) => {
           if (question.options) {
             const { optionSetId } = await createOptionSet();
-            const options = question.options?.map(option => ({
+            const options = question.options?.map((option) => ({
               name: option,
               code: option,
             }));
@@ -276,9 +277,9 @@ export default function NewIndicator({ user }) {
             return {
               ...question,
               options: undefined,
-              valueType: question.valueType?.replace('CODED', 'TEXT'),
+              valueType: question.valueType?.replace("CODED", "TEXT"),
               aggregationType:
-                question.valueType === 'NUMBER' ? 'SUM' : 'COUNT',
+                question.valueType === "NUMBER" ? "SUM" : "COUNT",
               optionSet: {
                 id: optionSetId,
                 options,
@@ -294,7 +295,7 @@ export default function NewIndicator({ user }) {
         assessmentQuestions: finalQuestions,
         createdBy: {
           id: user?.me?.id,
-          code: '',
+          code: "",
           name: user?.me?.name,
           username: user?.me?.username,
           displayName: user?.me?.name,
@@ -314,13 +315,13 @@ export default function NewIndicator({ user }) {
       await createDataElements(payload);
     } catch (error) {
       console.log(error);
-      setError('Something went wrong!');
+      setError("Something went wrong!");
     }
   };
 
-  const addQuestionOptions = values => {
+  const addQuestionOptions = (values) => {
     const { options } = values;
-    const textOptions = options?.map(option => option?.key);
+    const textOptions = options?.map((option) => option?.key);
     setCurrentQuestion({ ...currentQuestion, options: textOptions });
   };
 
@@ -331,7 +332,7 @@ export default function NewIndicator({ user }) {
           setQuestions([]);
           form.resetFields();
           setCurrentQuestion({ name: null, valueType: null });
-          navigate('/indicators/dictionary');
+          navigate("/indicators/dictionary");
         }}
         className={classes.btnCancel}
       >
@@ -350,50 +351,50 @@ export default function NewIndicator({ user }) {
   );
 
   const methods = [
-    'if()',
-    'isNull()',
-    'isNotNull()',
-    'AND',
-    'NOTEQUAL',
-    'OR',
-    '==',
-    '<',
-    '>',
-    '>=',
-    '<=',
+    "if()",
+    "isNull()",
+    "isNotNull()",
+    "AND",
+    "NOTEQUAL",
+    "OR",
+    "==",
+    "<",
+    ">",
+    ">=",
+    "<=",
   ];
 
   return (
-    <CardItem title='ADD INDICATOR' footer={footer}>
+    <CardItem title="ADD INDICATOR" footer={footer}>
       {success && (
         <Notification
-          status='success'
+          status="success"
           message={success}
           onClose={() => setSuccess(false)}
         />
       )}
       {error && (
         <Notification
-          status='error'
+          status="error"
           message={error}
           onClose={() => setError(false)}
         />
       )}
-      <Form layout='vertical' form={form} onFinish={handleSubmit}>
+      <Form layout="vertical" form={form} onFinish={handleSubmit}>
         <div className={classes.basicDetails}>
           <Form.Item
-            label='Indicator Name'
-            name='indicatorName'
+            label="Indicator Name"
+            name="indicatorName"
             rules={[
               {
                 required: true,
-                message: 'Please input the indicator name!',
+                message: "Please input the indicator name!",
               },
               {
                 validator: (_, value) => {
-                  if (checkElementName(value)) {
+                  if (checkElementName(value) && !pathName?.includes("edit")) {
                     return Promise.reject(
-                      'Indicator with this name/code already exists'
+                      "Indicator with this name/code already exists"
                     );
                   }
                   return Promise.resolve();
@@ -402,27 +403,27 @@ export default function NewIndicator({ user }) {
             ]}
           >
             <Input
-              onChange={e => setIndicatorName(e.target.value)}
-              placeholder='Name'
-              size='large'
+              onChange={(e) => setIndicatorName(e.target.value)}
+              placeholder="Name"
+              size="large"
             />
           </Form.Item>
           <Form.Item
-            name='systemComponent'
-            label='System Component/Outcome/Attribute'
+            name="systemComponent"
+            label="System Component/Outcome/Attribute"
             rules={[
               {
                 required: true,
-                message: 'Please select an option!',
+                message: "Please select an option!",
               },
             ]}
           >
             <Select
               removeIcon
-              placeholder='System Component/Outcome/Attribute'
-              size='large'
-              onChange={value => setTopics(value)}
-              options={Object.keys(components).map(component => {
+              placeholder="System Component/Outcome/Attribute"
+              size="large"
+              onChange={(value) => setTopics(value)}
+              options={Object.keys(components).map((component) => {
                 return {
                   value: component,
                   label: component,
@@ -432,18 +433,18 @@ export default function NewIndicator({ user }) {
           </Form.Item>
 
           <Form.Item
-            name='indicatorCode'
-            label='PSS Insight Indicator #'
+            name="indicatorCode"
+            label="PSS Insight Indicator #"
             rules={[
               {
                 required: true,
-                message: 'Please input the indicator code!',
+                message: "Please input the indicator code!",
               },
               {
                 validator: (_, value) => {
-                  if (checkElementName(value)) {
+                  if (checkElementName(value) && !pathName?.includes("edit")) {
                     return Promise.reject(
-                      'Indicator with this name/code already exists'
+                      "Indicator with this name/code already exists"
                     );
                   }
                   return Promise.resolve();
@@ -451,24 +452,28 @@ export default function NewIndicator({ user }) {
               },
             ]}
           >
-            <Input placeholder='PSS Insight Indicator #' size='large' />
+            <Input
+              disabled={pathName?.includes("edit")}
+              placeholder="PSS Insight Indicator #"
+              size="large"
+            />
           </Form.Item>
 
           <Form.Item
-            name='dimension'
-            label='System Element/Dimension'
+            name="dimension"
+            label="System Element/Dimension"
             rules={[
               {
                 required: true,
-                message: 'Please select a dimension!',
+                message: "Please select a dimension!",
               },
             ]}
           >
             <Select
               removeIcon
-              placeholder='System Element/Dimension'
-              size='large'
-              options={components[topics]?.map(element => {
+              placeholder="System Element/Dimension"
+              size="large"
+              options={components[topics]?.map((element) => {
                 return {
                   value: element,
                   label: element,
@@ -477,44 +482,44 @@ export default function NewIndicator({ user }) {
             ></Select>
           </Form.Item>
           <Form.Item
-            name='definition'
-            label='Definition'
+            name="definition"
+            label="Definition"
             className={classes.definition}
             rules={[
               {
                 required: true,
-                message: 'Please input the definition!',
+                message: "Please input the definition!",
               },
             ]}
           >
-            <Input.TextArea placeholder='Definition' size='large' rows={5} />
+            <Input.TextArea placeholder="Definition" size="large" rows={5} />
           </Form.Item>
           <Form.Item
-            name='dataType'
-            label='Data Type'
+            name="dataType"
+            label="Data Type"
             rules={[
               {
                 required: true,
-                message: 'Please input type!',
+                message: "Please input type!",
               },
             ]}
           >
             <Select
-              placeholder='Select a data type'
-              size='large'
+              placeholder="Select a data type"
+              size="large"
               options={dataTypeOptions}
             />
           </Form.Item>
         </div>
-        <Title text='ASSESSMENT QUESTIONS:' type='primary' />
+        <Title text="ASSESSMENT QUESTIONS:" type="primary" />
         <div className={classes.questions}>
           <div className={classes.question}>
             <div className={classes.questionInputs}>
               <Input
-                placeholder='Add Question'
-                size='large'
+                placeholder="Add Question"
+                size="large"
                 value={currentQuestion?.name}
-                onChange={e => {
+                onChange={(e) => {
                   setCurrentQuestion({
                     ...currentQuestion,
                     name: e.target.value,
@@ -524,17 +529,17 @@ export default function NewIndicator({ user }) {
               />
               <Select
                 className={classes.select}
-                placeholder={'Select a type'}
-                size='large'
+                placeholder={"Select a type"}
+                size="large"
                 value={currentQuestion?.valueType}
-                onChange={value => {
+                onChange={(value) => {
                   setValidations(null);
                   setCurrentQuestion({ ...currentQuestion, valueType: value });
                 }}
                 options={valueTypeOptions}
               />
             </div>
-            {currentQuestion?.valueType === 'CODED' && (
+            {currentQuestion?.valueType === "CODED" && (
               <div className={classes.questionsContainer}>
                 <h1>Add Selection Options</h1>
                 <div className={classes.selections}>
@@ -546,13 +551,13 @@ export default function NewIndicator({ user }) {
               <Alert
                 showIcon
                 message={validations}
-                type='error'
-                size='small'
-                style={{ marginBottom: '10px' }}
+                type="error"
+                size="small"
+                style={{ marginBottom: "10px" }}
               />
             )}
             <div className={`${classes.footer} ${classes.borderTop}`}>
-              <Button size='large' type='primary' onClick={handleAddQuestion}>
+              <Button size="large" type="primary" onClick={handleAddQuestion}>
                 Add
               </Button>
             </div>
@@ -564,109 +569,110 @@ export default function NewIndicator({ user }) {
             columns={columns}
             pagination={false}
             bordered
-            size='small'
+            size="small"
             locale={{
-              emptyText: 'No questions added yet',
+              emptyText: "No questions added yet",
             }}
-            rowKey={record => record.name}
+            rowKey={(record) => record.name}
           />
         </div>
         <div className={classes.basicDetails}>
-          <Form.Item name='purposeAndIssues' label='Purpose and Issues'>
+          <Form.Item name="purposeAndIssues" label="Purpose and Issues">
             <Input.TextArea
-              placeholder='Purpose and Issues'
-              size='large'
+              placeholder="Purpose and Issues"
+              size="large"
               rows={4}
             />
           </Form.Item>
 
-          <Form.Item name='preferredDataSources' label='Preferred Data Sources'>
+          <Form.Item name="preferredDataSources" label="Preferred Data Sources">
             <Input.TextArea
-              placeholder='Preferred Data Sources'
-              size='large'
+              placeholder="Preferred Data Sources"
+              size="large"
               rows={4}
             />
           </Form.Item>
 
           <Form.Item
-            name='benchmark'
-            label='International Benchmark'
+            name="benchmark"
+            label="International Benchmark"
             className={classes.definition}
           >
             <Input.TextArea
-              placeholder='International Benchmark'
-              size='large'
+              placeholder="International Benchmark"
+              size="large"
               rows={5}
             />
           </Form.Item>
           <Form.Item
-            name='expectedFrequencyDataDissemination'
-            label='Expected Frequency of Data Dissemination'
+            name="expectedFrequencyOfDataDissemination"
+            label="Expected Frequency of Data Dissemination"
             rules={[
               {
                 required: true,
                 message:
-                  'Please input the expected frequency of data dissemination!',
+                  "Please input the expected frequency of data dissemination!",
               },
             ]}
-            initialValue={'Yearly'}
+            initialValue={"Anually"}
           >
             <Input
-              placeholder='Expected Frequency of Data Dissemination'
-              size='large'
+              placeholder="Expected Frequency of Data Dissemination"
+              size="large"
+              defaultValue={"Anually"}
               disabled
             />
           </Form.Item>
           <Form.Item
-            name='indicatorReference'
-            label='Indicator Reference Number(s)'
-            tooltip='This is the indicator number from the indicator source (If applicable)'
+            name="indicatorReference"
+            label="Indicator Reference Number(s)"
+            tooltip="This is the indicator number from the indicator source (If applicable)"
           >
-            <Input placeholder='Indicator Reference Number(s)' size='large' />
+            <Input placeholder="Indicator Reference Number(s)" size="large" />
           </Form.Item>
-          <Form.Item name='indicatorSource' label='Indicator Source(s)'>
+          <Form.Item name="indicatorSource" label="Indicator Source(s)">
             <Input.TextArea
-              placeholder='Indicator Source(s)'
-              size='large'
+              placeholder="Indicator Source(s)"
+              size="large"
               rows={4}
             />
           </Form.Item>
         </div>
 
-        <Card title='FORMULA' className={classes.formula} size='small'>
+        <Card title="FORMULA" className={classes.formula} size="small">
           <div className={classes.basicDetails}>
             <Form.Item
-              name='methodOfEstimation'
-              label='Method of Estimation'
+              name="methodOfEstimation"
+              label="Method of Estimation"
               rules={[
                 {
                   required: true,
-                  message: 'Please select a method of estimation!',
+                  message: "Please select a method of estimation!",
                 },
               ]}
             >
               <Select
-                placeholder='Select a method of estimation'
-                notFoundContent='No methods of estimation found'
-                size='large'
+                placeholder="Select a method of estimation"
+                notFoundContent="No methods of estimation found"
+                size="large"
                 options={aggregationTypes}
               />
             </Form.Item>
             <Form.Item
-              name='format'
-              label='Type of Formula'
+              name="format"
+              label="Type of Formula"
               rules={[
                 {
                   required: true,
-                  message: 'Please select a type of formula!',
+                  message: "Please select a type of formula!",
                 },
               ]}
             >
               <Select
-                placeholder='Select a type of formula'
-                notFoundContent='No types of formula found'
-                size='large'
-                options={indicatorTypes?.map(item => ({
+                placeholder="Select a type of formula"
+                notFoundContent="No types of formula found"
+                size="large"
+                options={indicatorTypes?.map((item) => ({
                   label: item?.displayName,
                   value: item?.id,
                 }))}
@@ -678,12 +684,12 @@ export default function NewIndicator({ user }) {
                 message={
                   <p>
                     The following <b>case sensitive</b> methods are allowed:
-                    <i>{`\t${methods?.join(', ') || ''}`}</i>
+                    <i>{`\t${methods?.join(", ") || ""}`}</i>
                   </p>
                 }
-                type='info'
-                size='small'
-                style={{ marginBottom: '10px' }}
+                type="info"
+                size="small"
+                style={{ marginBottom: "10px" }}
               />
 
               <ExpressionInput
@@ -691,9 +697,9 @@ export default function NewIndicator({ user }) {
                 Form={Form}
                 form={form}
                 Input={Input}
-                name='expression'
-                placeholder='Expression'
-                label='Expression'
+                name="expression"
+                placeholder="Expression"
+                label="Expression"
                 indicatorName={indicatorName}
               />
             </div>
@@ -703,9 +709,9 @@ export default function NewIndicator({ user }) {
               Form={Form}
               form={form}
               Input={Input}
-              name='numerator'
-              label='Numerator'
-              placeholder={'Numerator'}
+              name="numerator"
+              label="Numerator"
+              placeholder={"Numerator"}
               required={true}
               indicatorName={indicatorName}
             />
@@ -714,9 +720,9 @@ export default function NewIndicator({ user }) {
               Form={Form}
               form={form}
               Input={Input}
-              name='denominator'
-              label='Denominator'
-              placeholder={'Denominator'}
+              name="denominator"
+              label="Denominator"
+              placeholder={"Denominator"}
               required={true}
               indicatorName={indicatorName}
             />

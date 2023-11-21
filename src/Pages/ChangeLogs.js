@@ -1,24 +1,32 @@
-import React, { useEffect, useState } from 'react';
-import { Table } from 'antd';
-import { format } from 'date-fns';
-import { Link } from 'react-router-dom';
-import Card from '../components/Card';
-import { listLogs } from '../api/logs';
+import React, { useEffect, useState } from "react";
+import { Table } from "antd";
+import { format } from "date-fns";
+import { Link } from "react-router-dom";
+import Card from "../components/Card";
+import { listLogs } from "../api/logs";
 
 export default function ChangeLogs() {
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
+  const sortLogs = (logs = []) => {
+    return logs?.sort((a, b) => {
+      const dateA = new Date(a?.dateAdded);
+      const dateB = new Date(b?.dateAdded);
+      return dateB - dateA;
+    });
+  };
+
   const fetchLogs = async () => {
     try {
       const data = await listLogs();
-      setLogs(data?.details);
+      setLogs(sortLogs(data?.details));
     } catch (error) {
       if (error.response.status < 400) {
-        setLogs(error.response.data?.details);
+        setLogs(sortLogs(error.response.data?.details));
       } else {
-        setError('Error fetching logs');
+        setError("Error fetching logs");
       }
     }
   };
@@ -29,25 +37,25 @@ export default function ChangeLogs() {
 
   const columns = [
     {
-      title: 'VERSION',
-      dataIndex: 'version',
-      key: 'version',
+      title: "VERSION",
+      dataIndex: "version",
+      key: "version",
     },
     {
-      title: 'COUNTRY',
-      dataIndex: 'country',
-      key: 'country',
+      title: "COUNTRY",
+      dataIndex: "country",
+      key: "country",
     },
     {
-      title: 'DATE ADDDED',
-      dataIndex: 'dateAdded',
-      key: 'dateAdded',
-      render: date => date && format(new Date(date), 'dd/MM/yyyy'),
+      title: "DATE ADDDED",
+      dataIndex: "dateAdded",
+      key: "dateAdded",
+      render: (date) => date && format(new Date(date), "dd/MM/yyyy"),
     },
     {
-      title: 'ACTIONS',
-      dataIndex: 'actions',
-      key: 'actions',
+      title: "ACTIONS",
+      dataIndex: "actions",
+      key: "actions",
       render: (_, record) => (
         <span>
           <Link to={`/changelog/${record?.version}`}>View</Link>
@@ -56,17 +64,17 @@ export default function ChangeLogs() {
     },
   ];
   return (
-    <Card title='CHANGE LOGS'>
+    <Card title="CHANGE LOGS">
       {logs?.length > 0 && (
         <Table
           columns={columns}
           dataSource={logs}
-          rowKey={record => record?.id}
+          rowKey={(record) => record?.id}
           pagination={logs.length > 15 ? { pageSize: 15 } : false}
-          size='small'
+          size="small"
           bordered
           locale={{
-            emptyText: 'No change logs',
+            emptyText: "No change logs",
           }}
         />
       )}
