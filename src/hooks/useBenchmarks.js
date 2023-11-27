@@ -12,9 +12,9 @@ export default function useBenchmarks() {
         const dataSet = await getBenchmarkDataSet();
         const dataValues = await getDataValues({
             params: {
-                period: '2022',
+                period: new Date().getFullYear() - 1,
                 dataSet: dataSet.id,
-                orgUnit: 'FjZO8q7Ie2B'
+                orgUnit: orgUnit
             }
         });
         setBenchmarkDataSet(dataSet);
@@ -23,8 +23,8 @@ export default function useBenchmarks() {
     };
 
     useEffect(() => {
-        getDataSet();
         getOrgUnit();
+        getDataSet();
     }, []);
 
     const getOrgUnit = async () => {
