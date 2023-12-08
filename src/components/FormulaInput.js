@@ -80,6 +80,7 @@ const InputWithFormula = ({
   const [showDropdown, setShowDropdown] = useState(false);
   const [formulaOptions, setFormulaOptions] = useState(questions);
 
+
   const classes = useStyles();
   const dropdownRef = useRef(null);
 

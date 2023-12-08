@@ -145,6 +145,7 @@ export default function NewIndicator({ user }) {
         form.setFieldsValue({
           ...data,
         });
+        setIndicatorName(data?.indicatorName);
         if (data?.formula){
             form.setFieldsValue({
                 numerator: data?.formula?.numerator,
